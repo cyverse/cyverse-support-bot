@@ -17,9 +17,11 @@ Also, the bot can be talked to using the commands `who`, `when`, `why`, and `how
 1. Clone repository
 
   `git clone https://github.com/calvinmclean/cyverse-support-bot.git`
+
 2. Install dependencies
 
   `pip install -r requirements.txt`
+
 3. Make sure environment variables are defined
   ```
   export BOT_NAME='<name of slack bot>'
@@ -27,6 +29,7 @@ Also, the bot can be talked to using the commands `who`, `when`, `why`, and `how
   export GOOGLE_APP_SECRET_PATH='<path to secrets json file>'
   export BOT_USER_OAUTH_TOKEN='<slack bot oauth token>'
   ```
+
 4. Run the bot!
 
   `python bot.py --noauth_local_webserver` or `python bot.py --noauth_local_webserver &` to run in the background
