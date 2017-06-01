@@ -1,29 +1,14 @@
-import httplib2
-import os
-import time
-import oauth
-import datetime
+import httplib2, os, time, oauth, datetime, sys
 from slackclient import SlackClient
 from apiclient import discovery
 from oauth2client import client, tools
 from oauth2client.file import Storage
 from slackclient import SlackClient
-
 try:
     import argparse
     flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
 except ImportError:
     flags = None
-
-# starterbot's ID as an environment variable
-BOT_ID = os.environ.get("BOT_ID")
-
-# constants
-AT_BOT = "<@" + BOT_ID + ">"
-SUPPORT_CHANNEL = "general"
-CAL_ID = ""
-
-slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
 
 def parse_slack_output(slack_rtm_output):
     """
@@ -32,11 +17,12 @@ def parse_slack_output(slack_rtm_output):
         directed at the Bot, based on its ID.
     """
     output_list = slack_rtm_output
+
     if output_list and len(output_list) > 0:
         for output in output_list:
-            if output and 'text' in output and AT_BOT in output['text']:
+            if output and 'text' in output and ("<@" + BOT_ID + ">") in output['text']:
                 # return text after the @ mention, whitespace removed
-                return output['text'].split(AT_BOT)[1].strip(), \
+                return output['text'].split(("<@" + BOT_ID + ">"))[1].strip().lower(), \
                        output['channel']
     return None, None
 
@@ -103,32 +89,49 @@ def get_credentials():
     Returns:
         Credentials, the obtained credential.
     """
-    home_dir = os.path.expanduser('~')
-    credential_dir = os.path.join(home_dir, '.credentials')
-    if not os.path.exists(credential_dir):
-        os.makedirs(credential_dir)
-    credential_path = os.path.join(credential_dir,
-                                   'calendar-python-quickstart.json')
-
+    credential_path = GOOGLE_APP_OAUTH_SECRET_PATH
     store = Storage(credential_path)
     credentials = store.get()
     if not credentials or credentials.invalid:
-        flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
-        flow.user_agent = APPLICATION_NAME
+        flow = client.flow_from_clientsecrets(GOOGLE_APP_SECRET_PATH,
+		'https://www.googleapis.com/auth/calendar.readonly')
+        flow.user_agent = 'Cyverse Slack Supurt But'
         if flags:
             credentials = tools.run_flow(flow, store, flags)
         else: # Needed only for compatibility with Python 2.6
             credentials = tools.run(flow, store)
-        print('Storing credentials to ' + credential_path)
+        print('Storing credentials to ' + GOOGLE_APP_OAUTH_SECRET_PATH)
     return credentials
 
-sevice=None
+def get_bot_id(slack_client, bot_name):
+    api_call = slack_client.api_call("users.list")
+    if api_call.get('ok'):
+        # retrieve all users so we can find our bot
+        users = api_call.get('members')
+        for user in users:
+            if 'name' in user and user.get('name') == bot_name:
+                return user.get('id')
+    return None
+
+# constants
+CAL_ID = os.environ.get("CAL_ID")
+BOT_NAME = os.environ.get("BOT_NAME")
+BOT_ID = None
+GOOGLE_APP_SECRET_PATH = os.environ.get("GOOGLE_APP_SECRET_PATH")
+GOOGLE_APP_OAUTH_SECRET_PATH = os.environ.get("GOOGLE_APP_OAUTH_SECRET_PATH", ".oauth_secret_json")
+BOT_USER_OAUTH_TOKEN=os.environ.get('BOT_USER_OAUTH_TOKEN')
+SUPPORT_CHANNEL=os.environ.get('SUPPORT_CHANNEL', 'general')
 
 if __name__ == "__main__":
+
+    # OAUTH
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     service = discovery.build('calendar', 'v3', http=http)
 
+    # SLACK
+    slack_client = SlackClient(BOT_USER_OAUTH_TOKEN)
+    BOT_ID = get_bot_id(slack_client, BOT_NAME)
     if slack_client.rtm_connect():
         while True:
             command, channel = parse_slack_output(slack_client.rtm_read())
@@ -142,3 +145,4 @@ if __name__ == "__main__":
             time.sleep(1)
     else:
         print("Connection failed. Invalid Slack token or bot ID?")
+
