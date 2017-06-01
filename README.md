@@ -20,8 +20,10 @@ Also, the bot can be talked to using the commands `who`, `when`, `why`, and `how
   `pip install -r requirements.txt`
 3. Make sure environment variables are defined
   ```
-  export BOT_ID='<BOT_ID>'
-  export SLACK_BOT_TOKEN='<SLACK_BOT_TOKEN>'
+  export BOT_ID='<id of slack bot>'
+  export CAL_ID='<id of google calendar>'
+  export GOOGLE_APP_SECRET_PATH='<path to secrets json file>'
+  export BOT_USER_OAUTH_TOKEN='<slack bot oauth token>'
   ```
 4. Run the bot!
-  `python bot.py` or `python bot.py &` to run in the background
+  `python bot.py --noauth_local_webserver` or `python bot.py --noauth_local_webserver &` to run in the background
