@@ -26,10 +26,9 @@ Also, the bot can be talked to using the commands `who`, `when`, `why`, and `how
   ```
   export BOT_NAME='<name of slack bot>'
   export CAL_ID='<id of google calendar>'
-  export GOOGLE_APP_SECRET_PATH='<path to secrets json file>'
-  export GOOGLE_APP_OAUTH_SECRET_PATH='<path to oauth secret>'
+  export GOOGLE_APP_SECRET_PATH='<path to secrets file | default: oauth_secret_json>'
   export BOT_USER_OAUTH_TOKEN='<slack bot oauth token>'
-  export SUPPORT_CHANNEL='<slack channel for support updates>'
+  export SUPPORT_CHANNEL='<slack channel for support updates | default: general>'
   ```
 
 4. Run the bot!
