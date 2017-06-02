@@ -34,10 +34,13 @@ def get_name_from_cal():
         Returns:
             Name string
     """
-    # Get 10 events
-    now = datetime.datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
+    # Check next 24 hours
+    now = datetime.datetime.utcnow()
+    later = now + datetime.timedelta(hours=23)
+    now = now.isoformat() + 'Z' # 'Z' indicates UTC time
+    later = later.isoformat() + 'Z'
     eventsResult = service.events().list(
-        calendarId=CAL_ID, timeMin=now, maxResults=10, singleEvents=True,
+        calendarId=CAL_ID, timeMin=now, timeMax=later, singleEvents=True,
         orderBy='startTime').execute()
     events = eventsResult.get('items', [])
 
@@ -57,10 +60,13 @@ def get_day_from_cal(name):
         Returns:
             Day string ("Monday", etc.)
     """
-    # Get 7 events
-    now = datetime.datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
+    # Check next week
+    now = datetime.datetime.utcnow()
+    later = now + datetime.timedelta(days=7)
+    now = now.isoformat() + 'Z' # 'Z' indicates UTC time
+    later = later.isoformat() + 'Z'
     eventsResult = service.events().list(
-        calendarId=CAL_ID, timeMin=now, maxResults=7, singleEvents=True,
+        calendarId=CAL_ID, timeMin=now, timeMax=later, singleEvents=True,
         orderBy='startTime').execute()
     events = eventsResult.get('items', [])
 
@@ -81,7 +87,7 @@ def handle_command(command, channel):
     # who - get today's support person
     if command.startswith("who"):
         name = get_name_from_cal()
-        response = "Today's support person is %s." % (name)
+        response = "Today's support person is @%s." % (name)
     # when - find next day for specified user
     elif command.startswith("when"):
         if len(command.split()) <= 1:
@@ -89,7 +95,7 @@ def handle_command(command, channel):
         else:
             name = command.split()[1]
             day = get_day_from_cal(name)
-            response = "The next support day for %s is %s." % (name, day)
+            response = "The next support day for @%s is %s." % (name, day)
     # why - bc our users are great
     elif command.startswith("why"):
         response = "because we love our users!"
@@ -99,7 +105,7 @@ def handle_command(command, channel):
     # Otherwise, usage help
     else:
         response = "Ask me: `who`, `when`, `why`, or `how`."
-    slack_client.api_call("chat.postMessage", channel=channel, text=response + " :party-parrot:", as_user=True)
+    slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
 
 def get_credentials():
     """
