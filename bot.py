@@ -117,7 +117,7 @@ def get_credentials():
         Returns:
             Credentials, the obtained credential.
     """
-    credential_path = GOOGLE_APP_SECRET_PATH
+    credential_path = GOOGLE_APP_OAUTH_SECRET_PATH
     store = Storage(credential_path)
     credentials = store.get()
     if not credentials or credentials.invalid:
@@ -128,7 +128,7 @@ def get_credentials():
             credentials = tools.run_flow(flow, store, flags)
         else: # Needed only for compatibility with Python 2.6
             credentials = tools.run(flow, store)
-        print('Storing credentials to ' + GOOGLE_APP_SECRET_PATH)
+        print('Storing credentials to ' + GOOGLE_APP_OAUTH_SECRET_PATH)
     return credentials
 
 def get_bot_id(slack_client, bot_name):
@@ -151,7 +151,8 @@ def get_bot_id(slack_client, bot_name):
 CAL_ID = os.environ.get("CAL_ID")
 BOT_NAME = os.environ.get("BOT_NAME")
 BOT_ID = None
-GOOGLE_APP_SECRET_PATH = os.environ.get("GOOGLE_APP_SECRET_PATH", ".oauth_secret_json")
+GOOGLE_APP_SECRET_PATH = os.environ.get("GOOGLE_APP_SECRET_PATH")
+GOOGLE_APP_OAUTH_SECRET_PATH = os.environ.get("GOOGLE_APP_OAUTH_SECRET_PATH", ".oauth_secret_json")
 BOT_USER_OAUTH_TOKEN=os.environ.get('BOT_USER_OAUTH_TOKEN')
 SUPPORT_CHANNEL=os.environ.get('SUPPORT_CHANNEL', 'general')
 
