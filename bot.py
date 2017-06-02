@@ -28,6 +28,12 @@ def parse_slack_output(slack_rtm_output):
 
 # Get the name for the person doing support on today day
 def get_name_from_cal():
+    """
+        Search today's events, looking for "Atmosphere Support".
+
+        Returns:
+            Name string
+    """
     # Get 10 events
     now = datetime.datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
     eventsResult = service.events().list(
@@ -45,6 +51,12 @@ def get_name_from_cal():
     return "no one is on support today"
 
 def get_day_from_cal(name):
+    """
+        Search upcoming events, looking for the specified name.
+
+        Returns:
+            Day string ("Monday", etc.)
+    """
     # Get 7 events
     now = datetime.datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
     eventsResult = service.events().list(
@@ -62,9 +74,15 @@ def get_day_from_cal(name):
     return "not on the calendar"
 
 def handle_command(command, channel):
+    """
+        Manages the commands 'who', 'when', 'why' and 'how'
+        No return, sends message to Slack.
+    """
+    # who - get today's support person
     if command.startswith("who"):
         name = get_name_from_cal()
         response = "Today's support person is %s." % (name)
+    # when - find next day for specified user
     elif command.startswith("when"):
         if len(command.split()) <= 1:
             response = "In order to use the `when` command, specify a user"
@@ -72,22 +90,26 @@ def handle_command(command, channel):
             name = command.split()[1]
             day = get_day_from_cal(name)
             response = "The next support day for %s is %s." % (name, day)
+    # why - bc our users are great
     elif command.startswith("why"):
         response = "because we love our users!"
+    # how - links to support sites
     elif command.startswith("how"):
         response = "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond")
+    # Otherwise, usage help
     else:
         response = "Ask me: `who`, `when`, `why`, or `how`."
     slack_client.api_call("chat.postMessage", channel=channel, text=response + " :party-parrot:", as_user=True)
 
 def get_credentials():
-    """Gets valid user credentials from storage.
+    """
+        Gets valid user credentials from storage.
 
-    If nothing has been stored, or if the stored credentials are invalid,
-    the OAuth2 flow is completed to obtain the new credentials.
+        If nothing has been stored, or if the stored credentials are invalid,
+        the OAuth2 flow is completed to obtain the new credentials.
 
-    Returns:
-        Credentials, the obtained credential.
+        Returns:
+            Credentials, the obtained credential.
     """
     credential_path = GOOGLE_APP_OAUTH_SECRET_PATH
     store = Storage(credential_path)
@@ -104,6 +126,12 @@ def get_credentials():
     return credentials
 
 def get_bot_id(slack_client, bot_name):
+    """
+        Gets valid user id from user name.
+
+        Returns:
+            User ID of bot.
+    """
     api_call = slack_client.api_call("users.list")
     if api_call.get('ok'):
         # retrieve all users so we can find our bot
@@ -134,15 +162,15 @@ if __name__ == "__main__":
     BOT_ID = get_bot_id(slack_client, BOT_NAME)
     if slack_client.rtm_connect():
         while True:
+            # wait to be mentioned
             command, channel = parse_slack_output(slack_client.rtm_read())
             if command and channel:
                 handle_command(command, channel)
 
             cur_time = time.localtime()
-            # Only print today's support name if it is a weekday at 8am
+            # or print today's support name if it is a weekday at 8am
             if cur_time.tm_wday < 5 and cur_time.tm_hour == 8 and cur_time.tm_min == 0 and cur_time.tm_sec == 0:
                 handle_command("who", SUPPORT_CHANNEL)
             time.sleep(1)
     else:
         print("Connection failed. Invalid Slack token or bot ID?")
-
