@@ -34,10 +34,13 @@ def get_name_from_cal():
         Returns:
             Name string
     """
-    # Get 10 events
-    now = datetime.datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
+    # Check next 24 hours
+    now = datetime.datetime.utcnow()
+    later = now + datetime.timedelta(hours=23)
+    now = now.isoformat() + 'Z' # 'Z' indicates UTC time
+    later = later.isoformat() + 'Z'
     eventsResult = service.events().list(
-        calendarId=CAL_ID, timeMin=now, maxResults=10, singleEvents=True,
+        calendarId=CAL_ID, timeMin=now, timeMax=later, singleEvents=True,
         orderBy='startTime').execute()
     events = eventsResult.get('items', [])
 
@@ -57,10 +60,13 @@ def get_day_from_cal(name):
         Returns:
             Day string ("Monday", etc.)
     """
-    # Get 7 events
-    now = datetime.datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
+    # Check next week
+    now = datetime.datetime.utcnow()
+    later = now + datetime.timedelta(days=7)
+    now = now.isoformat() + 'Z' # 'Z' indicates UTC time
+    later = later.isoformat() + 'Z'
     eventsResult = service.events().list(
-        calendarId=CAL_ID, timeMin=now, maxResults=7, singleEvents=True,
+        calendarId=CAL_ID, timeMin=now, timeMax=later, singleEvents=True,
         orderBy='startTime').execute()
     events = eventsResult.get('items', [])
 
