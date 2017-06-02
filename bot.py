@@ -105,7 +105,7 @@ def handle_command(command, channel):
     # Otherwise, usage help
     else:
         response = "Ask me: `who`, `when`, `why`, or `how`."
-    slack_client.api_call("chat.postMessage", channel=channel, text=response + " :party-parrot:", as_user=True)
+    slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
 
 def get_credentials():
     """
