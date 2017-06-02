@@ -87,7 +87,7 @@ def handle_command(command, channel):
     # who - get today's support person
     if command.startswith("who"):
         name = get_name_from_cal()
-        response = "Today's support person is %s." % (name)
+        response = "Today's support person is @%s." % (name)
     # when - find next day for specified user
     elif command.startswith("when"):
         if len(command.split()) <= 1:
@@ -95,7 +95,7 @@ def handle_command(command, channel):
         else:
             name = command.split()[1]
             day = get_day_from_cal(name)
-            response = "The next support day for %s is %s." % (name, day)
+            response = "The next support day for @%s is %s." % (name, day)
     # why - bc our users are great
     elif command.startswith("why"):
         response = "because we love our users!"
