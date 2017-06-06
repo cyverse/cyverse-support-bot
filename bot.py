@@ -1,4 +1,4 @@
-import httplib2, os, time, oauth, datetime, sys
+import httplib2, os, time, oauth, datetime, sys, socket
 from slackclient import SlackClient
 from apiclient import discovery
 from oauth2client import client, tools
@@ -99,6 +99,8 @@ def handle_command(command, channel):
     # why - bc our users are great
     elif command.startswith("why"):
         response = "because we love our users!"
+    elif command.startswith("where"):
+        response = "This bot is hosted on %s in the directory %s" % (socket.getfqdn(), os.getcwd())
     # how - links to support sites
     elif command.startswith("how"):
         response = "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond")
