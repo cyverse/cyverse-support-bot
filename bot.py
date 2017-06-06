@@ -84,7 +84,7 @@ def handle_command(command, channel):
         No return, sends message to Slack.
     """
     # who - get today's support person
-    if command.startswith("who"):
+    if command.lower() == "who":
         name = get_name_from_cal()
         response = "Today's support person is @%s." % (name)
     # when - find next day for specified user
@@ -96,12 +96,13 @@ def handle_command(command, channel):
             day = get_day_from_cal(name)
             response = "The next support day for @%s is %s." % (name, day)
     # why - bc our users are great
-    elif command.startswith("why"):
+    elif command.lower() == "why":
         response = "because we love our users!"
-    elif command.startswith("where"):
+    # where - find where this is hosted
+    elif command.lower() == "where":
         response = "This bot is hosted on %s in the directory %s.\nYou can find my code here: %s." % (socket.getfqdn(), os.getcwd(), "https://github.com/calvinmclean/cyverse-support-bot")
     # how - links to support sites
-    elif command.startswith("how"):
+    elif command.lower() == "how":
         response = "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond")
     # Otherwise, usage help
     else:
