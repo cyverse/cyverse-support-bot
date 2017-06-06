@@ -1,4 +1,4 @@
-import httplib2, os, time, oauth, datetime, sys
+import httplib2, os, time, oauth, datetime, sys, socket
 from slackclient import SlackClient
 from apiclient import discovery
 from oauth2client import client, tools
@@ -62,11 +62,9 @@ def get_day_from_cal(name):
     """
     # Check next week
     now = datetime.datetime.utcnow()
-    later = now + datetime.timedelta(days=7)
     now = now.isoformat() + 'Z' # 'Z' indicates UTC time
-    later = later.isoformat() + 'Z'
     eventsResult = service.events().list(
-        calendarId=CAL_ID, timeMin=now, timeMax=later, singleEvents=True,
+        calendarId=CAL_ID, timeMin=now, singleEvents=True,
         orderBy='startTime').execute()
     events = eventsResult.get('items', [])
 
@@ -99,12 +97,14 @@ def handle_command(command, channel):
     # why - bc our users are great
     elif command.startswith("why"):
         response = "because we love our users!"
+    elif command.startswith("where"):
+        response = "This bot is hosted on %s in the directory %s.\nYou can find my code here: %s." % (socket.getfqdn(), os.getcwd(), "https://github.com/calvinmclean/cyverse-support-bot")
     # how - links to support sites
     elif command.startswith("how"):
         response = "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond")
     # Otherwise, usage help
     else:
-        response = "Ask me: `who`, `when`, `why`, or `how`."
+        response = "Ask me:\n  `who` is today's support person.\n  `when` is someone's next day\n  `where` I am hosted\n  `how` you can support users\n  `why`"
     slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
 
 def get_credentials():
