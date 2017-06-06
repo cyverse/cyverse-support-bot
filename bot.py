@@ -100,7 +100,7 @@ def handle_command(command, channel):
     elif command.startswith("why"):
         response = "because we love our users!"
     elif command.startswith("where"):
-        response = "This bot is hosted on %s in the directory %s" % (socket.getfqdn(), os.getcwd())
+        response = "This bot is hosted on %s in the directory %s.\nYou can find me code here: %s." % (socket.getfqdn(), os.getcwd(), https://github.com/calvinmclean/cyverse-support-bot)
     # how - links to support sites
     elif command.startswith("how"):
         response = "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond")
