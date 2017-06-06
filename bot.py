@@ -73,8 +73,9 @@ def get_day_from_cal(name):
         for event in events:
             desc = event['summary']
             if name.lower() in desc.lower() and "Atmosphere Support" in desc:
+                date = datetime.datetime.strptime(event['start'].get('dateTime', event['start'].get('date')), "%Y-%m-%d")
                 # Return day of week as full string
-                return datetime.datetime.strptime(event['start'].get('dateTime', event['start'].get('date')), "%Y-%m-%d").strftime("%A")
+                return date.strftime("%A") + " " + date
     return "not on the calendar"
 
 def handle_command(command, channel):
