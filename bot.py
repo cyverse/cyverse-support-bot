@@ -169,6 +169,8 @@ if __name__ == "__main__":
     slack_client = SlackClient(BOT_USER_OAUTH_TOKEN)
     BOT_ID = get_bot_id(slack_client, BOT_NAME)
     if slack_client.rtm_connect():
+        BOT_MSG=os.environ.get('BOT_MSG', 'Hello!')
+        slack_client.api_call("chat.postMessage", channel=SUPPORT_CHANNEL, text=BOT_MSG, as_user=True)
         while True:
             # wait to be mentioned
             command, channel = parse_slack_output(slack_client.rtm_read())

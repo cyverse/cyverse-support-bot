@@ -1,0 +1,12 @@
+[Unit]
+Description=CyVerse Support Bot
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/usr/bin/python /opt/dev/cyverse-support-bot/bot.py --noauth_local_webserver
+ExecStop=/bin/sh -c "/bin/kill -9 `ps aux | grep [b]ot.py | awk '{print $2}'`"
+
+[Install]
+WantedBy=multi-user.target
