@@ -24,7 +24,15 @@ def parse_slack_output(slack_rtm_output):
                 # return text after the @ mention, whitespace removed
                 text = output['text'].split(("<@" + BOT_ID + ">"))
                 if text[0].strip().lower() in hello_words:
-                    slack_client.api_call("chat.postMessage", channel=output['channel'], text=("Hello " + "<@" + output['user'] + ">!"), as_user=True)
+                    slack_client.api_call("chat.postMessage",
+                        channel=output['channel'],
+                        text=("Hello " + "<@" + output['user'] + ">!"),
+                        as_user=True)
+                if text[0].strip().lower() == "thanks" or text[0].strip().lower() == "thank":
+                    slack_client.api_call("chat.postMessage",
+                        channel=output['channel'],
+                        text=("You're welcome " + "<@" + output['user'] + ">!"),
+                        as_user=True)
                 else:
                     return text[1].strip().lower(), output['channel']
     return None, None
