@@ -10,6 +10,7 @@ Environment="BOT_USER_OAUTH_TOKEN="
 Environment="BOT_NAME="
 Environment="SUPPORT_CHANNEL="
 Environment="GOOGLE_APP_OAUTH_SECRET_PATH="
+Restart=always
 ExecStart=/usr/bin/python /opt/dev/cyverse-support-bot/bot.py --noauth_local_webserver
 ExecStop=/bin/sh -c "/bin/kill -9 `ps aux | grep [b]ot.py | awk '{print $2}'`"
 
