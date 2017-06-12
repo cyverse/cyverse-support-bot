@@ -22,8 +22,11 @@ def parse_slack_output(slack_rtm_output):
         for output in output_list:
             if output and 'text' in output and ("<@" + BOT_ID + ">") in output['text']:
                 # return text after the @ mention, whitespace removed
-                return output['text'].split(("<@" + BOT_ID + ">"))[1].strip().lower(), \
-                       output['channel']
+                text = output['text'].split(("<@" + BOT_ID + ">"))
+                if text[0].strip().lower() in hello_words:
+                    slack_client.api_call("chat.postMessage", channel=output['channel'], text="Hello!", as_user=True)
+                else:
+                    return text[1].strip().lower(), output['channel']
     return None, None
 
 # Get the name for the person doing support on today day
@@ -83,7 +86,6 @@ def handle_command(command, channel):
         Manages the commands 'who', 'when', 'why' and 'how'
         No return, sends message to Slack.
     """
-    hello_words = {'hello', 'hi', 'howdy', 'hey', 'good morning'}
     # who - get today's support person
     if command.lower() == "who":
         name = get_name_from_cal()
@@ -161,6 +163,7 @@ GOOGLE_APP_SECRET_PATH = os.environ.get("GOOGLE_APP_SECRET_PATH")
 GOOGLE_APP_OAUTH_SECRET_PATH = os.environ.get("GOOGLE_APP_OAUTH_SECRET_PATH", ".oauth_secret_json")
 BOT_USER_OAUTH_TOKEN=os.environ.get('BOT_USER_OAUTH_TOKEN')
 SUPPORT_CHANNEL=os.environ.get('SUPPORT_CHANNEL', 'general')
+hello_words = {'hello', 'hi', 'howdy', 'hey', 'good morning'}
 
 if __name__ == "__main__":
 
@@ -173,8 +176,6 @@ if __name__ == "__main__":
     slack_client = SlackClient(BOT_USER_OAUTH_TOKEN)
     BOT_ID = get_bot_id(slack_client, BOT_NAME)
     if slack_client.rtm_connect():
-        BOT_MSG=os.environ.get('BOT_MSG', 'Hello!')
-        slack_client.api_call("chat.postMessage", channel=SUPPORT_CHANNEL, text=BOT_MSG, as_user=True)
         while True:
             # wait to be mentioned
             command, channel = parse_slack_output(slack_client.rtm_read())
