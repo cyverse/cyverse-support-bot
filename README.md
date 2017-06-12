@@ -48,3 +48,5 @@ SUPPORT_CHANNEL=
 BOT_MSG=
 GOOGLE_APP_OAUTH_SECRET_PATH=
 ```
+
+Link the support_bot.service to `/etc/systemd/system/support_bot.service`
