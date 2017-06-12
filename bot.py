@@ -83,6 +83,7 @@ def handle_command(command, channel):
         Manages the commands 'who', 'when', 'why' and 'how'
         No return, sends message to Slack.
     """
+    hello_words = {'hello', 'hi', 'howdy', 'hey', 'good morning'}
     # who - get today's support person
     if command.lower() == "who":
         name = get_name_from_cal()
@@ -104,6 +105,9 @@ def handle_command(command, channel):
     # how - links to support sites
     elif command.lower() == "how":
         response = "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond")
+    # maybe someone is just saying hello
+    elif command.lower() in hello_words:
+        response = "Hello!"
     # Otherwise, usage help
     else:
         response = "Ask me:\n  `who` is today's support person.\n  `when` is someone's next day\n  `where` I am hosted\n  `how` you can support users\n  `why`"
