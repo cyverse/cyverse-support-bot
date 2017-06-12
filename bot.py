@@ -96,10 +96,12 @@ def handle_command(command, channel):
             response = "In order to use the `when` command, specify a user"
         else:
             name = command.split()[1]
-            day = get_day_from_cal(name)
+            # Check if name exists in user list
             if get_bot_id(slack_client, name):
-                name = ("<@" + get_bot_id(slack_client, name) + ">")
-            response = "The next support day for %s is %s." % (name, day)
+                day = get_day_from_cal(name)
+                response = "The next support day for %s is %s." % (("<@" + get_bot_id(slack_client, name) + ">"), day)
+            else:
+                response = "User %s does not seem to exist in this team." % (name)
     # why - bc our users are great
     elif command.lower() == "why":
         response = "because we love our users!"
