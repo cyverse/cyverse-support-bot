@@ -24,7 +24,7 @@ def parse_slack_output(slack_rtm_output):
                 # return text after the @ mention, whitespace removed
                 text = output['text'].split(("<@" + BOT_ID + ">"))
                 if text[0].strip().lower() in hello_words:
-                    slack_client.api_call("chat.postMessage", channel=output['channel'], text="Hello!", as_user=True)
+                    slack_client.api_call("chat.postMessage", channel=output['channel'], text=("Hello " + "<@" + output['user'] + ">!"), as_user=True)
                 else:
                     return text[1].strip().lower(), output['channel']
     return None, None
@@ -96,8 +96,9 @@ def handle_command(command, channel):
             response = "In order to use the `when` command, specify a user"
         else:
             name = command.split()[1]
+            name = ("<@" + get_bot_id(slack_client, name) + ">")
             day = get_day_from_cal(name)
-            response = "The next support day for @%s is %s." % (name, day)
+            response = "The next support day for %s is %s." % (name, day)
     # why - bc our users are great
     elif command.lower() == "why":
         response = "because we love our users!"
@@ -164,6 +165,7 @@ GOOGLE_APP_OAUTH_SECRET_PATH = os.environ.get("GOOGLE_APP_OAUTH_SECRET_PATH", ".
 BOT_USER_OAUTH_TOKEN=os.environ.get('BOT_USER_OAUTH_TOKEN')
 SUPPORT_CHANNEL=os.environ.get('SUPPORT_CHANNEL', 'general')
 hello_words = {'hello', 'hi', 'howdy', 'hey', 'good morning'}
+slack_client = SlackClient(BOT_USER_OAUTH_TOKEN)
 
 if __name__ == "__main__":
 
@@ -173,7 +175,6 @@ if __name__ == "__main__":
     service = discovery.build('calendar', 'v3', http=http)
 
     # SLACK
-    slack_client = SlackClient(BOT_USER_OAUTH_TOKEN)
     BOT_ID = get_bot_id(slack_client, BOT_NAME)
     if slack_client.rtm_connect():
         while True:
