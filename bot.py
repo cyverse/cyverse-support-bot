@@ -28,7 +28,7 @@ def parse_slack_output(slack_rtm_output):
                         channel=output['channel'],
                         text=("Hello " + "<@" + output['user'] + ">!"),
                         as_user=True)
-                if text[0].strip().lower() == "thanks" or text[0].strip().lower() == "thank":
+                if text[0].strip().lower().startswith("thanks"):
                     slack_client.api_call("chat.postMessage",
                         channel=output['channel'],
                         text=("You're welcome " + "<@" + output['user'] + ">!"),
