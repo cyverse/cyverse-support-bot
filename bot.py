@@ -89,7 +89,7 @@ def handle_command(command, channel):
     # who - get today's support person
     if command.lower() == "who":
         name = get_name_from_cal()
-        response = "Today's support person is @%s." % (name)
+        response = "Today's support person is %s." % ("<@" + get_bot_id(slack_client, name) + ">")
     # when - find next day for specified user
     elif command.startswith("when"):
         if len(command.split()) <= 1:
