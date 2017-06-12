@@ -39,14 +39,4 @@ Also, the bot can be talked to using the commands `who`, `when`, `why`, and `how
 
 ### Systemd
 
-The bot now has a systemd file to control start and stop. In order to use it effectively, create a file in this directory called `env_file` that looks like this (with values filled in):
-```
-CAL_ID=
-BOT_USER_OAUTH_TOKEN=
-BOT_NAME=
-SUPPORT_CHANNEL=
-BOT_MSG=
-GOOGLE_APP_OAUTH_SECRET_PATH=
-```
-
-Link the support_bot.service to `/etc/systemd/system/support_bot.service`
+The bot now has a systemd file to control start and stop. In order to use it effectively, fill out the environment variables in the service file.
