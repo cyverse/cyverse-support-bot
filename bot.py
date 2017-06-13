@@ -28,7 +28,7 @@ def parse_slack_output(slack_rtm_output):
                         channel=output['channel'],
                         text=("Hello " + "<@" + output['user'] + ">!"),
                         as_user=True)
-                if text[0].strip().lower().startswith("thanks"):
+                if text[0].strip().lower().startswith("thank"):
                     slack_client.api_call("chat.postMessage",
                         channel=output['channel'],
                         text=("You're welcome " + "<@" + output['user'] + ">!"),
@@ -198,6 +198,7 @@ if __name__ == "__main__":
             # or print today's support name if it is a weekday at 8am
             if cur_time.tm_wday < 5 and cur_time.tm_hour == 8 and cur_time.tm_min == 0 and cur_time.tm_sec == 0:
                 handle_command("who", SUPPORT_CHANNEL)
+                slack_client.api_call("chat.postMessage", channel=SUPPORT_CHANNEL, text="Don't forget Intercom! :slightly_smiling_face:", as_user=True)
             time.sleep(1)
     else:
         print("Connection failed. Invalid Slack token or bot ID?")
