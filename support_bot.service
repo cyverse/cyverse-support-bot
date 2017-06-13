@@ -12,7 +12,7 @@ Environment="SUPPORT_CHANNEL="
 Environment="GOOGLE_APP_OAUTH_SECRET_PATH="
 Restart=always
 ExecStart=/usr/bin/python /opt/dev/cyverse-support-bot/bot.py --noauth_local_webserver
-ExecStop=/bin/sh -c "/bin/kill -9 `ps aux | grep [b]ot.py | awk '{print $2}'`"
+ExecStop=/bin/sh -c "/bin/kill -3 `ps aux | grep [b]ot.py | awk '{print $2}'`"
 
 [Install]
 WantedBy=multi-user.target
