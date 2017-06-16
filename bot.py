@@ -4,6 +4,7 @@ from apiclient import discovery
 from oauth2client import client, tools
 from oauth2client.file import Storage
 from slackclient import SlackClient
+from intercom.client import Client
 try:
     import argparse
     flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
@@ -119,6 +120,8 @@ def handle_command(command, channel):
     # how - links to support sites
     elif command.lower() == "how":
         response = "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond")
+    elif command.lower() == "status":
+        response = check_intercom()
     # maybe someone is just saying hello
     elif command.lower() in hello_words:
         response = "Hello!"
@@ -167,6 +170,17 @@ def get_bot_id(slack_client, bot_name):
                 return user.get('id')
     return None
 
+def check_intercom():
+    conversations = intercom.conversations.find_all(open=True)
+    num_open = 0
+    num_unread = 0
+
+    for conv in conversations:
+        num_open += 1
+        if conv.read == False:
+            num_unread += 1
+    return "There are %d open conversations in Intercom.\n Of those conversations, %d are unread" % (num_open, num_unread)
+
 # constants
 CAL_ID = os.environ.get("CAL_ID")
 BOT_NAME = os.environ.get("BOT_NAME")
@@ -175,8 +189,10 @@ GOOGLE_APP_SECRET_PATH = os.environ.get("GOOGLE_APP_SECRET_PATH")
 GOOGLE_APP_OAUTH_SECRET_PATH = os.environ.get("GOOGLE_APP_OAUTH_SECRET_PATH", ".oauth_secret_json")
 BOT_USER_OAUTH_TOKEN=os.environ.get('BOT_USER_OAUTH_TOKEN')
 SUPPORT_CHANNEL=os.environ.get('SUPPORT_CHANNEL', 'general')
+INTERCOM_KEY=os.environ.get("INTERCOM_KEY")
 hello_words = {'hello', 'hi', 'howdy', 'hey', 'good morning'}
 slack_client = SlackClient(BOT_USER_OAUTH_TOKEN)
+intercom = Client(personal_access_token=INTERCOM_KEY)
 
 if __name__ == "__main__":
 
