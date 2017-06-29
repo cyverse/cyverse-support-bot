@@ -97,20 +97,20 @@ def handle_command(command, channel, user):
     """
     # who - get today's support person
     if command.lower() == "who":
-        name = ("<@" + get_bot_id(slack_client, get_name_from_cal()) + ">")
+        name = ("<@" + get_user_id(slack_client, get_name_from_cal()) + ">")
         response = "Today's support person is %s." % (name)
     # when - find next day for specified user
     elif command.startswith("when"):
         if len(command.split()) <= 1:
             name = user
-            day = get_day_from_cal(name)
+            day = get_day_from_cal(get_user_name(name))
             response = "The next support day for %s is %s." % (("<@" + name + ">"), day)
         else:
             name = command.split()[1]
             # Check if name exists in user list
-            if get_bot_id(slack_client, name):
+            if get_user_id(slack_client, name):
                 day = get_day_from_cal(name)
-                response = "The next support day for %s is %s." % (("<@" + get_bot_id(slack_client, name) + ">"), day)
+                response = "The next support day for %s is %s." % (("<@" + get_user_id(slack_client, name) + ">"), day)
             else:
                 response = "User %s does not seem to exist in this team." % (name)
     # why - bc our users are great
@@ -156,7 +156,7 @@ def get_credentials():
         print('Storing credentials to ' + GOOGLE_APP_OAUTH_SECRET_PATH)
     return credentials
 
-def get_bot_id(slack_client, bot_name):
+def get_user_id(slack_client, name):
     """
         Gets valid user id from user name.
 
@@ -168,8 +168,18 @@ def get_bot_id(slack_client, bot_name):
         # retrieve all users so we can find our bot
         users = api_call.get('members')
         for user in users:
-            if 'name' in user and user.get('name') == bot_name:
+            if 'name' in user and user.get('name') == name:
                 return user.get('id')
+    return None
+
+def get_user_name(slack_client, id):
+    api_call = slack_client.api_call("users.list")
+    if api_call.get('ok'):
+        # retrieve all users so we can find our bot
+        users = api_call.get('members')
+        for user in users:
+            if 'id' in user and user.get('id') == id:
+                return user.get('name')
     return None
 
 def check_intercom():
@@ -204,7 +214,7 @@ if __name__ == "__main__":
     service = discovery.build('calendar', 'v3', http=http)
 
     # SLACK
-    BOT_ID = get_bot_id(slack_client, BOT_NAME)
+    BOT_ID = get_user_id(slack_client, BOT_NAME)
     if slack_client.rtm_connect():
         while True:
             # wait to be mentioned
