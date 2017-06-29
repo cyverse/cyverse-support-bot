@@ -35,8 +35,8 @@ def parse_slack_output(slack_rtm_output):
                         text=("You're welcome " + "<@" + output['user'] + ">!"),
                         as_user=True)
                 else:
-                    return text[1].strip().lower(), output['channel']
-    return None, None
+                    return text[1].strip().lower(), output['channel'], output['user']
+    return None, None, None
 
 # Get the name for the person doing support on today day
 def get_name_from_cal():
@@ -90,7 +90,7 @@ def get_day_from_cal(name):
                 return date.strftime("%A") + " " + date.strftime("%Y-%m-%d")
     return "not on the calendar"
 
-def handle_command(command, channel):
+def handle_command(command, channel, user):
     """
         Manages the commands 'who', 'when', 'why' and 'how'
         No return, sends message to Slack.
@@ -102,7 +102,9 @@ def handle_command(command, channel):
     # when - find next day for specified user
     elif command.startswith("when"):
         if len(command.split()) <= 1:
-            response = "In order to use the `when` command, specify a user"
+            name = user
+            day = get_day_from_cal(name)
+            response = "The next support day for %s is %s." % (("<@" + name + ">"), day)
         else:
             name = command.split()[1]
             # Check if name exists in user list
@@ -206,9 +208,9 @@ if __name__ == "__main__":
     if slack_client.rtm_connect():
         while True:
             # wait to be mentioned
-            command, channel = parse_slack_output(slack_client.rtm_read())
+            command, channel, user = parse_slack_output(slack_client.rtm_read())
             if command and channel:
-                handle_command(command, channel)
+                handle_command(command, channel, user)
 
             cur_time = time.localtime()
             # or print today's support name if it is a weekday at 8am
