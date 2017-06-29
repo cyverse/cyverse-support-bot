@@ -103,7 +103,7 @@ def handle_command(command, channel, user):
     elif command.startswith("when"):
         if len(command.split()) <= 1:
             name = user
-            day = get_day_from_cal(get_user_name(name))
+            day = get_day_from_cal(get_user_name(slack_client, name))
             response = "The next support day for %s is %s." % (("<@" + name + ">"), day)
         else:
             name = command.split()[1]
