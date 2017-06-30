@@ -225,7 +225,7 @@ if __name__ == "__main__":
             cur_time = time.localtime()
             # or print today's support name if it is a weekday at 8am
             if cur_time.tm_wday < 5 and cur_time.tm_hour == 8 and cur_time.tm_min == 0 and cur_time.tm_sec == 0:
-                handle_command("who", SUPPORT_CHANNEL)
+                handle_command("who", SUPPORT_CHANNEL, None)
                 slack_client.api_call("chat.postMessage", channel=SUPPORT_CHANNEL, text="Don't forget Intercom! :slightly_smiling_face:", as_user=True)
             time.sleep(1)
     else:
