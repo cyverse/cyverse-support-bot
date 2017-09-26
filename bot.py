@@ -4,7 +4,6 @@ from apiclient import discovery
 from oauth2client import client, tools
 from oauth2client.file import Storage
 from slackclient import SlackClient
-from intercom import check_intercom
 try:
     import argparse
     flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
@@ -100,8 +99,7 @@ def handle_command(command, channel, user):
                              "when"   : find_when(command),
                              "why"    : "because we love our users!",
                              "where"  : "This bot is hosted on %s in the directory %s.\nYou can find my code here: %s." % (socket.getfqdn(), os.getcwd(), "https://github.com/calvinmclean/cyverse-support-bot"),
-                             "how"    : "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond"),
-                             "status" : check_intercom()}
+                             "how"    : "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond")}
     if command[0] in hello_words:
         response = "Hello!"
     elif command[0] in command_response_dict:
@@ -125,6 +123,7 @@ def find_when(name):
             response = "The next support day for %s is %s." % (("<@" + get_bot_id(slack_client, name[1]) + ">"), get_day_from_cal(name[1]))
         else:
             response = "User %s does not seem to exist in this team." % (name[1])
+    return response
 
 def get_credentials():
     """
@@ -164,6 +163,16 @@ def get_user_id(slack_client, name):
         for user in users:
             if 'name' in user and user.get('name') == name:
                 return user.get('id')
+    return None
+
+def get_user_name(slack_client, id):
+    api_call = slack_client.api_call("users.list")
+    if api_call.get('ok'):
+        # retrieve all users so we can find our bot
+        users = api_call.get('members')
+        for user in users:
+            if 'id' in user and user.get('id') == id:
+                return user.get('name')
     return None
 
 # constants
