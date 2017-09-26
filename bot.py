@@ -92,38 +92,39 @@ def get_day_from_cal(name):
 
 def handle_command(command, channel, user):
     """
-        Manages the commands 'who', 'when', 'why' and 'how'
+        Manages the commands 'who', 'when', 'why', 'where', and 'how'. Also responds to a list of hello_words
         No return, sends message to Slack.
     """
-    if command.lower() == "who":
-        name = ("<@" + get_user_id(slack_client, get_name_from_cal()) + ">")
-        response = "Today's support person is %s." % (name)
-    elif command.startswith("when"):
-        if len(command.split()) <= 1:
-            name = user
-            day = get_day_from_cal(get_user_name(slack_client, name))
-            response = "The next support day for %s is %s." % (("<@" + name + ">"), day)
-        else:
-            name = command.split()[1]
-            # Check if name exists in user list
-            if get_user_id(slack_client, name):
-                day = get_day_from_cal(name)
-                response = "The next support day for %s is %s." % (("<@" + get_user_id(slack_client, name) + ">"), day)
-            else:
-                response = "User %s does not seem to exist in this team." % (name)
-    elif command.lower() == "why":
-        response = "because we love our users!"
-    elif command.lower() == "where":
-        response = "This bot is hosted on %s in the directory %s.\nYou can find my code here: %s." % (socket.getfqdn(), os.getcwd(), "https://github.com/calvinmclean/cyverse-support-bot")
-    elif command.lower() == "how":
-        response = "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond")
-    elif command.lower() == "status":
-        response = check_intercom()
-    elif command.lower() in hello_words:
+    command = command.lower().split()
+    command_response_dict = {"who"    : "Today's support person is %s." % ("<@" + get_bot_id(slack_client, get_name_from_cal()) + ">"),
+                             "when"   : find_when(command),
+                             "why"    : "because we love our users!",
+                             "where"  : "This bot is hosted on %s in the directory %s.\nYou can find my code here: %s." % (socket.getfqdn(), os.getcwd(), "https://github.com/calvinmclean/cyverse-support-bot"),
+                             "how"    : "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond"),
+                             "status" : check_intercom()}
+    if command[0] in hello_words:
         response = "Hello!"
+    elif command[0] in command_response_dict:
+        response = command_response_dict[command[0]]
     else:
         response = "Ask me:\n  `who` is today's support person.\n  `when` is someone's next day\n  `where` I am hosted\n  `how` you can support users\n  `why`"
     slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
+
+def find_when(name):
+    """
+        Argument 'name' is a list. If the first word is not 'when', then ignore. Otherwise, check length and
+        return user's next support day.
+    """
+    if name[0] != "when":
+        return "Command is not 'when'"
+    elif len(name) <= 1:
+        response = "In order to use the `when` command, specify a user"
+    else:
+        # Check if name exists in user list
+        if get_bot_id(slack_client, name[1]):
+            response = "The next support day for %s is %s." % (("<@" + get_bot_id(slack_client, name[1]) + ">"), get_day_from_cal(name[1]))
+        else:
+            response = "User %s does not seem to exist in this team." % (name[1])
 
 def get_credentials():
     """
