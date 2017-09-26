@@ -91,7 +91,8 @@ def get_day_from_cal(name):
 
 def handle_command(command, channel, user):
     """
-        Manages the commands 'who', 'when', 'why', 'where', and 'how'. Also responds to a list of hello_words
+        Manages the commands 'who', 'when', 'why', 'where', and 'how'.
+        Also responds to a list of hello_words
         No return, sends message to Slack.
     """
     command = command.lower().split()
@@ -153,18 +154,14 @@ def get_credentials():
 
 def get_user_id(slack_client, name):
     """
-        Gets valid user id from user name.
+        Gets valid user id from username.
 
         Returns:
             User ID of bot.
     """
-    api_call = slack_client.api_call("users.list")
-    if api_call.get('ok'):
-        # retrieve all users so we can find our bot
-        users = api_call.get('members')
-        for user in users:
-            if 'name' in user and user.get('name') == name:
-                return user.get('id')
+    for user in user_list:
+        if 'name' in user and user.get('name') == name:
+            return user.get('id')
     return None
 
 def get_user_name(slack_client, id):
@@ -174,13 +171,9 @@ def get_user_name(slack_client, id):
         Returns:
             Username.
     """
-    api_call = slack_client.api_call("users.list")
-    if api_call.get('ok'):
-        # retrieve all users so we can find our bot
-        users = api_call.get('members')
-        for user in users:
-            if 'id' in user and user.get('id') == id:
-                return user.get('name')
+    for user in user_list:
+        if 'id' in user and user.get('id') == id:
+            return user.get('name')
     return None
 
 # constants
@@ -193,6 +186,7 @@ BOT_USER_OAUTH_TOKEN=os.environ.get('BOT_USER_OAUTH_TOKEN')
 SUPPORT_CHANNEL=os.environ.get('SUPPORT_CHANNEL', 'general')
 hello_words = {'hello', 'hi', 'howdy', 'hey', 'good morning'}
 slack_client = SlackClient(BOT_USER_OAUTH_TOKEN)
+user_list = None
 
 if __name__ == "__main__":
 
@@ -200,6 +194,11 @@ if __name__ == "__main__":
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     service = discovery.build('calendar', 'v3', http=http)
+
+    # Get list of users so it API doesn't have to be asked for list each time
+    api_call = slack_client.api_call("users.list")
+    if api_call.get('ok'):
+        user_list = api_call.get('members')
 
     # SLACK
     BOT_ID = get_user_id(slack_client, BOT_NAME)
