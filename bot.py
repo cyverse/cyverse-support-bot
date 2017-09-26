@@ -4,7 +4,6 @@ from apiclient import discovery
 from oauth2client import client, tools
 from oauth2client.file import Storage
 from slackclient import SlackClient
-# from intercom.client import Client
 from intercom import check_intercom
 try:
     import argparse
@@ -96,11 +95,9 @@ def handle_command(command, channel, user):
         Manages the commands 'who', 'when', 'why' and 'how'
         No return, sends message to Slack.
     """
-    # who - get today's support person
     if command.lower() == "who":
         name = ("<@" + get_user_id(slack_client, get_name_from_cal()) + ">")
         response = "Today's support person is %s." % (name)
-    # when - find next day for specified user
     elif command.startswith("when"):
         if len(command.split()) <= 1:
             name = user
@@ -114,21 +111,16 @@ def handle_command(command, channel, user):
                 response = "The next support day for %s is %s." % (("<@" + get_user_id(slack_client, name) + ">"), day)
             else:
                 response = "User %s does not seem to exist in this team." % (name)
-    # why - bc our users are great
     elif command.lower() == "why":
         response = "because we love our users!"
-    # where - find where this is hosted
     elif command.lower() == "where":
         response = "This bot is hosted on %s in the directory %s.\nYou can find my code here: %s." % (socket.getfqdn(), os.getcwd(), "https://github.com/calvinmclean/cyverse-support-bot")
-    # how - links to support sites
     elif command.lower() == "how":
         response = "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond")
     elif command.lower() == "status":
         response = check_intercom()
-    # maybe someone is just saying hello
     elif command.lower() in hello_words:
         response = "Hello!"
-    # Otherwise, usage help
     else:
         response = "Ask me:\n  `who` is today's support person.\n  `when` is someone's next day\n  `where` I am hosted\n  `how` you can support users\n  `why`"
     slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
