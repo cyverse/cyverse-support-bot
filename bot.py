@@ -95,8 +95,8 @@ def handle_command(command, channel, user):
         No return, sends message to Slack.
     """
     command = command.lower().split()
-    command_response_dict = {"who"    : "Today's support person is %s." % ("<@" + get_bot_id(slack_client, get_name_from_cal()) + ">"),
-                             "when"   : find_when(command),
+    command_response_dict = {"who"    : "Today's support person is %s." % ("<@" + get_user_id(slack_client, get_name_from_cal()) + ">"),
+                             "when"   : find_when(command, user),
                              "why"    : "because we love our users!",
                              "where"  : "This bot is hosted on %s in the directory %s.\nYou can find my code here: %s." % (socket.getfqdn(), os.getcwd(), "https://github.com/calvinmclean/cyverse-support-bot"),
                              "how"    : "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond")}
@@ -108,19 +108,21 @@ def handle_command(command, channel, user):
         response = "Ask me:\n  `who` is today's support person.\n  `when` is someone's next day\n  `where` I am hosted\n  `how` you can support users\n  `why`"
     slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
 
-def find_when(name):
+def find_when(name, user):
     """
-        Argument 'name' is a list. If the first word is not 'when', then ignore. Otherwise, check length and
-        return user's next support day.
+        Finds ther user's next support day.
+
+        Argument 'name' is a list. If the first word is not 'when', then ignore.
+        If no username is specified after 'when', find it based off asking user's ID.
     """
     if name[0] != "when":
         return "Command is not 'when'"
     elif len(name) <= 1:
-        response = "In order to use the `when` command, specify a user"
+        response = "The next support day for %s is %s." % (("<@" + user + ">"), get_day_from_cal(get_user_name(slack_client, user)))
     else:
         # Check if name exists in user list
-        if get_bot_id(slack_client, name[1]):
-            response = "The next support day for %s is %s." % (("<@" + get_bot_id(slack_client, name[1]) + ">"), get_day_from_cal(name[1]))
+        if get_user_id(slack_client, name[1]):
+            response = "The next support day for %s is %s." % (("<@" + get_user_id(slack_client, name[1]) + ">"), get_day_from_cal(name[1]))
         else:
             response = "User %s does not seem to exist in this team." % (name[1])
     return response
@@ -166,6 +168,12 @@ def get_user_id(slack_client, name):
     return None
 
 def get_user_name(slack_client, id):
+    """
+        Gets valid username from user id.
+
+        Returns:
+            Username.
+    """
     api_call = slack_client.api_call("users.list")
     if api_call.get('ok'):
         # retrieve all users so we can find our bot
