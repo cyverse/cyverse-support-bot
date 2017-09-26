@@ -111,9 +111,10 @@ def handle_command(command, channel, user):
 
 def find_when(name, user):
     """
-        Finds ther user's next support day.
+        Finds the user's next support day.
 
-        Argument 'name' is a list. If the first word is not 'when', then ignore.
+        Argument 'name' is a list. It should look like ['when'] or ['when', 'username'].
+        If the first word is not 'when', then ignore.
         If no username is specified after 'when', find it based off asking user's ID.
     """
     if name[0] != "when":
