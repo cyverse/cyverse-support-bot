@@ -89,6 +89,24 @@ def get_day_from_cal(name):
                 return date.strftime("%A") + " " + date.strftime("%Y-%m-%d")
     return "not on the calendar"
 
+def print_this_week():
+    now = datetime.datetime.utcnow()
+    now = now.isoformat() + 'Z' # 'Z' indicates UTC time
+    eventsResult = service.events().list(
+        calendarId=CAL_ID, timeMin=now, singleEvents=True,
+        orderBy='startTime').execute()
+    events = eventsResult.get('items', [])
+
+    result = ""
+
+    if events:
+        for event in events:
+            desc = event['summary']
+            if "Atmosphere Support" in desc:
+                date = datetime.datetime.strptime(event['start'].get('dateTime', event['start'].get('date')), "%Y-%m-%d")
+                name = desc.split()[0]
+                result += "The support person for %s is %s\n" % (date, name)
+
 def handle_command(command, channel, user):
     """
         Manages the commands 'who', 'when', 'why', 'where', and 'how'.
@@ -100,7 +118,9 @@ def handle_command(command, channel, user):
                              "when"   : find_when(command, user),
                              "why"    : "because we love our users!",
                              "where"  : "This bot is hosted on %s in the directory %s.\nYou can find my code here: %s." % (socket.getfqdn(), os.getcwd(), "https://github.com/calvinmclean/cyverse-support-bot"),
-                             "how"    : "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond")}
+                             "how"    : "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond"),
+                             "all"    : print_this_week()
+                            }
     if command[0] in hello_words:
         response = "Hello!"
     elif command[0] in command_response_dict:
