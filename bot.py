@@ -106,6 +106,7 @@ def print_this_week():
                 date = datetime.datetime.strptime(event['start'].get('dateTime', event['start'].get('date')), "%Y-%m-%d")
                 name = desc.split()[0]
                 result += "The support person for %s is %s\n" % (date, name)
+    return result
 
 def handle_command(command, channel, user):
     """
