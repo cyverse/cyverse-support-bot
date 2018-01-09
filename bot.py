@@ -98,11 +98,13 @@ def print_this_week():
     events = eventsResult.get('items', [])
 
     result = ""
+    num_days = 0
 
     if events:
         for event in events:
             desc = event['summary']
-            if "Atmosphere Support" in desc:
+            if "Atmosphere Support" in desc and num_days < 7:
+                num_days += 1
                 date = datetime.datetime.strptime(event['start'].get('dateTime', event['start'].get('date')), "%Y-%m-%d")
                 name = desc.split()[0]
                 result += "The support person for %s is %s\n" % (date, name)
