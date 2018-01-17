@@ -46,6 +46,8 @@ def get_name_from_cal():
         Returns:
             Name string
     """
+    logging.info("Getting name from calendar for today")
+
     # Check next 24 hours
     now = datetime.datetime.utcnow()
     later = now + datetime.timedelta(hours=23)
@@ -72,6 +74,8 @@ def get_day_from_cal(name):
         Returns:
             Day string ("Monday", etc.)
     """
+    logging.info("Getting day from calendar for user %s" % name)
+
     # Check next week
     now = datetime.datetime.utcnow()
     now = now.isoformat() + 'Z' # 'Z' indicates UTC time
@@ -91,6 +95,8 @@ def get_day_from_cal(name):
     return "not on the calendar"
 
 def print_this_week():
+    logging.info("Getting support persons for the next week")
+
     now = datetime.datetime.utcnow()
     now = now.isoformat() + 'Z' # 'Z' indicates UTC time
     eventsResult = service.events().list(
@@ -131,6 +137,7 @@ def handle_command(command, channel, user):
         response = command_response_dict[command[0]]
     else:
         response = "Ask me:\n  `who` is today's support person.\n  `when` is someone's next day\n  `where` I am hosted\n  `how` you can support users\n  `why`"
+    logging.info("Sending response to Slack: %s" % response)
     slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
 
 def find_when(name, user):
@@ -142,7 +149,7 @@ def find_when(name, user):
         If no username is specified after 'when', find it based off asking user's ID.
     """
     if name[0] != "when":
-        return "Command is not 'when'"
+        response = "Command is not 'when'"
     elif len(name) <= 1:
         response = "The next support day for %s is %s." % (("<@" + user + ">"), get_day_from_cal(get_user_name(slack_client, user)))
     else:
@@ -151,6 +158,7 @@ def find_when(name, user):
             response = "The next support day for %s is %s." % (("<@" + get_user_id(slack_client, name[1]) + ">"), get_day_from_cal(name[1]))
         else:
             response = "User %s does not seem to exist in this team." % (name[1])
+    logging.info("Command 'when' response: %s" % response)
     return response
 
 def get_credentials():
@@ -163,6 +171,7 @@ def get_credentials():
         Returns:
             Credentials, the obtained credential.
     """
+    logging.info("Getting Google Oauth credentials")
     credential_path = GOOGLE_APP_OAUTH_SECRET_PATH
     store = Storage(credential_path)
     credentials = store.get()
@@ -184,6 +193,7 @@ def get_user_id(slack_client, name):
         Returns:
             User ID of bot.
     """
+    logging.info("Getting id for Slack user %s" % name)
     for user in user_list:
         if 'name' in user and user.get('name') == name:
             return user.get('id')
@@ -196,6 +206,7 @@ def get_user_name(slack_client, id):
         Returns:
             Username.
     """
+    logging.info("Getting username for Slack id %s" % id)
     for user in user_list:
         if 'id' in user and user.get('id') == id:
             return user.get('name')
@@ -245,6 +256,7 @@ if __name__ == "__main__":
             if cur_time.tm_wday < 5 and cur_time.tm_hour == 8 and cur_time.tm_min == 0 and cur_time.tm_sec == 0:
                 handle_command("who", SUPPORT_CHANNEL, None)
                 slack_client.api_call("chat.postMessage", channel=SUPPORT_CHANNEL, text="Don't forget Intercom! :slightly_smiling_face:", as_user=True)
+                logging.info("Sent daily 8am message.")
             time.sleep(1)
     else:
         print("Connection failed. Invalid Slack token or bot ID?")
