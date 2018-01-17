@@ -145,18 +145,23 @@ def handle_command(command, channel, user):
     slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
 
 def confirm_swap(user):
-    response = "No pending swap requests."
-    with open("%s/support-bot-swap" % os.path.dirname(os.path.realpath(__file__)), "r") as file:
+    try:
+        file = open("%s/support-bot-swap" % os.path.dirname(os.path.realpath(__file__)), "r")
         user_one = file.readline().rstrip()
         user_two = file.readline().rstrip()
+        file.close()
 
-    logging.info("Read users from swap file: %s and %s" % (user_two, user_one))
+        logging.info("Finished reading users from swap file: %s and %s" % (user_two, user_one))
+        response = "You cannot confirm the pending swap between %s and %s" % ("<@" + get_user_name(slack_client, user_one) + ">", "<@" + get_user_name(slack_client, user_two) + ">")
 
-    # If user sending the confirmation is the second user in swap request, swap confirmed
-    if user == user_two:
-        logging.info("Second user, %s, confirmed the swap with %s" % (user_two, user_one))
-        response = "Swap with %s is confirmed." % ("<@" + get_user_id(slack_client, user_one) + ">")
-        perform_swap(user_one, user_two)
+        # If user sending the confirmation is the second user in swap request, swap confirmed
+        if user == user_two:
+            logging.info("Second user, %s, confirmed the swap with %s" % (user_two, user_one))
+            response = "Swap with %s is confirmed." % ("<@" + get_user_name(slack_client, user_one) + ">")
+            perform_swap(user_one, user_two)
+    except IOError
+        logging.info("No pending swap requests (file not found)")
+        response = "No pending swap requests."
 
     return response
 
