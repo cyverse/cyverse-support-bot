@@ -4,7 +4,6 @@ from apiclient import discovery
 from oauth2client import client, tools
 from oauth2client.file import Storage
 from slackclient import SlackClient
-from logging.config import dictConfig
 try:
     import argparse
     flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
@@ -122,7 +121,7 @@ def handle_command(command, channel, user):
     command_response_dict = {"who"    : "Today's support person is %s." % ("<@" + get_user_id(slack_client, get_name_from_cal()) + ">"),
                              "when"   : find_when(command, user),
                              "why"    : "because we love our users!",
-                             "where"  : "This bot is hosted on %s in the directory %s.\nYou can find my code here: %s." % (socket.getfqdn(), os.getcwd(), "https://github.com/calvinmclean/cyverse-support-bot"),
+                             "where"  : "This bot is hosted on %s in the directory %s.\nYou can find my code here: %s." % (socket.getfqdn(), os.path.dirname(os.path.realpath(__file__)), "https://github.com/calvinmclean/cyverse-support-bot"),
                              "how"    : "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond"),
                              "all"    : print_this_week()
                             }
@@ -216,25 +215,11 @@ user_list = None
 
 if __name__ == "__main__":
 
-    logging_config =
-    {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'formatters': {
-            'standard': {
-                'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
-            },
-        },
-        'handlers': {
-            'default': {
-                'level': 'INFO',
-                'formatter': 'standard',
-            },
-        }
-    }
-    dictConfig(logging_config)
-    logger = logging.getLogger()
-    logger.info("cyverse-support-bot started.")
+    logging.basicConfig(filename="%s/cyverse-support-bot.log" % os.path.dirname(os.path.realpath(__file__)),
+                        filemode='a',
+                        format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                        datefmt='%H:%M:%S',
+                        level=logging.INFO)
 
     # OAUTH
     credentials = get_credentials()
