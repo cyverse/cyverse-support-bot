@@ -12,6 +12,10 @@ Also, the bot can be talked to using the commands `who`, `when`, `why`, and `how
 
 `why` - tells you why.
 
+`where` - tells you the hostname of the bot's server and working directory as well as a link to the GitHub repo.
+
+`all` - prints the support persons for the next 7 days.
+
 ### Usage
 
 1. Clone repository
@@ -40,3 +44,9 @@ Also, the bot can be talked to using the commands `who`, `when`, `why`, and `how
 ### Systemd
 
 The bot now has a systemd file to control start and stop. In order to use it effectively, fill out the environment variables in the service file.
+Then, move it to `/etc/systemd/system/support_bot.service`. Run `systemctl daemon-reload` and `systemctl start support_bot`
+
+
+### Logging
+
+Logs are stored in the same directory as the application in the file `cyverse-support-bot.log`.
