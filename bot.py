@@ -135,7 +135,7 @@ def handle_command(command, channel, user):
     elif command[0] == "all":   response = print_this_week()
     elif command[0] == "swap":
         response = "Awaiting confirmation from %s to swap with %s." % ("<@" + get_user_id(slack_client, command[1]) + ">", "<@" + user + ">")
-        with open("support-bot-swap", "w") as file:
+        with open("%s/support-bot-swap" % os.path.dirname(os.path.realpath(__file__)), "w") as file:
             file.write(user + "\n")
             file.write(get_user_id(slack_client, command[1]) + "\n")
     elif command[0] == "confirm": response = confirm_swap(user)
@@ -145,12 +145,15 @@ def handle_command(command, channel, user):
     slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
 
 def confirm_swap(user):
-    with open("support-bot-swap", "r") as file:
-        user1 = file.readline()
-        user2 = file.readline()
+    with open("%s/support-bot-swap" % os.path.dirname(os.path.realpath(__file__)), "r") as file:
+        user_one = file.readline().rstrip()
+        user_two = file.readline().rstrip()
 
-        if (user == user2):
-            logging.info("Second user, %s, confirmed the swap with %s" % ("<@" + get_user_id(slack_client, user2) + ">", "<@" + get_user_id(slack_client, user1) + ">")
+    logging.info("Read users from swap file: %s and %s" % (user_two, user_one))
+
+    # If user sending the confirmation is the second user in swap request, swap confirmed
+    if user == user_two:
+        logging.info("Second user, %s, confirmed the swap with %s" % (user_two, user_one))
 
 def find_when(name, user):
     """
