@@ -162,6 +162,7 @@ def confirm_swap(user):
 
 def perform_swap(user_one, user_two):
     # TODO: swap days on the Google Calendar
+    return None
 
 def find_when(name, user):
     """
