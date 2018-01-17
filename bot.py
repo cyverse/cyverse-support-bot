@@ -132,11 +132,25 @@ def handle_command(command, channel, user):
     elif command[0] == "why":   response = "because we love our users!"
     elif command[0] == "where": response = "This bot is hosted on %s in the directory %s.\nYou can find my code here: %s." % (socket.getfqdn(), os.path.dirname(os.path.realpath(__file__)), "https://github.com/calvinmclean/cyverse-support-bot"),
     elif command[0] == "how":   response = "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond"),
-    elif command[0] == "all":   print_this_week()
+    elif command[0] == "all":   response = print_this_week()
+    elif command[0] == "swap":
+        response = "Awaiting confirmation from %s to swap with %s." % ("<@" + get_user_id(slack_client, command[1]) + ">", "<@" + user + ">")
+        with open("support-bot-swap", "w") as file:
+            file.write(user + "\n")
+            file.write(get_user_id(slack_client, command[1]) + "\n")
+    elif command[0] == "confirm": response = confirm_swap(user)
     else:
         response = "Ask me:\n  `who` is today's support person.\n  `when` is someone's next day\n  `where` I am hosted\n  `how` you can support users\n  `why`"
     logging.info("Sending response to Slack: %s" % response)
     slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
+
+def confirm_swap(user):
+    with open("support-bot-swap", "r") as file:
+        user1 = file.readline()
+        user2 = file.readline()
+
+        if (user == user2):
+            logging.info("Second user, %s, confirmed the swap with %s" % ("<@" + get_user_id(slack_client, user2) + ">", "<@" + get_user_id(slack_client, user1) + ">")
 
 def find_when(name, user):
     """
