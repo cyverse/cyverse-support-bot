@@ -139,6 +139,7 @@ def handle_command(command, channel, user):
             file.write(user + "\n")
             file.write(get_user_id(slack_client, command[1]) + "\n")
     elif command[0] == "confirm": response = confirm_swap(user)
+    elif command[0] == "deny" or command[0] == "decline": response = deny_swap()
     else:
         response = "Ask me:\n  `who` is today's support person.\n  `when` is someone's next day\n  `where` I am hosted\n  `how` you can support users\n  `why`"
     logging.info("Sending response to Slack: %s" % response)
@@ -167,7 +168,13 @@ def confirm_swap(user):
 
 def perform_swap(user_one, user_two):
     # TODO: swap days on the Google Calendar
+    os.remove("%s/support-bot-swap" % os.path.dirname(os.path.realpath(__file__)))
+    logging.info("Deleted swap file after performing swap")
     return None
+
+def deny_swap():
+    os.remove("%s/support-bot-swap" % os.path.dirname(os.path.realpath(__file__)))
+    logging.info("Deleted swap file after denying swap")
 
 def find_when(name, user):
     """
