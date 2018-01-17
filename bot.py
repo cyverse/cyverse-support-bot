@@ -170,11 +170,11 @@ def perform_swap(user_one, user_two):
     # TODO: swap days on the Google Calendar
     os.remove("%s/support-bot-swap" % os.path.dirname(os.path.realpath(__file__)))
     logging.info("Deleted swap file after performing swap")
-    return None
 
 def deny_swap():
     os.remove("%s/support-bot-swap" % os.path.dirname(os.path.realpath(__file__)))
     logging.info("Deleted swap file after denying swap")
+    return "Swap declined by user."
 
 def find_when(name, user):
     """
