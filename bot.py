@@ -145,6 +145,7 @@ def handle_command(command, channel, user):
     slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
 
 def confirm_swap(user):
+    response = "No pending swap requests."
     with open("%s/support-bot-swap" % os.path.dirname(os.path.realpath(__file__)), "r") as file:
         user_one = file.readline().rstrip()
         user_two = file.readline().rstrip()
@@ -154,6 +155,13 @@ def confirm_swap(user):
     # If user sending the confirmation is the second user in swap request, swap confirmed
     if user == user_two:
         logging.info("Second user, %s, confirmed the swap with %s" % (user_two, user_one))
+        response = "Swap with %s is confirmed." % ("<@" + get_user_id(slack_client, user_one) + ">")
+        perform_swap(user_one, user_two)
+
+    return response
+
+def perform_swap(user_one, user_two):
+    # TODO: swap days on the Google Calendar
 
 def find_when(name, user):
     """
