@@ -160,7 +160,7 @@ def confirm_swap(user):
             logging.info("Second user, %s, confirmed the swap with %s" % (user_two, user_one))
             response = "Swap with %s is confirmed." % ("<@" + get_user_name(slack_client, user_one) + ">")
             perform_swap(user_one, user_two)
-    except IOError
+    except IOError:
         logging.info("No pending swap requests (file not found)")
         response = "No pending swap requests."
 
