@@ -1,14 +1,16 @@
-import httplib2, os, time, oauth, datetime, sys, socket
+import httplib2, os, time, oauth, datetime, sys, socket, logging
 from slackclient import SlackClient
 from apiclient import discovery
 from oauth2client import client, tools
 from oauth2client.file import Storage
 from slackclient import SlackClient
+from logging.config import dictConfig
 try:
     import argparse
     flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
 except ImportError:
     flags = None
+
 
 def parse_slack_output(slack_rtm_output):
     """
@@ -213,6 +215,26 @@ slack_client = SlackClient(BOT_USER_OAUTH_TOKEN)
 user_list = None
 
 if __name__ == "__main__":
+
+    logging_config =
+    {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'standard': {
+                'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+            },
+        },
+        'handlers': {
+            'default': {
+                'level': 'INFO',
+                'formatter': 'standard',
+            },
+        }
+    }
+    dictConfig(logging_config)
+    logger = logging.getLogger()
+    logger.info("cyverse-support-bot started.")
 
     # OAUTH
     credentials = get_credentials()
