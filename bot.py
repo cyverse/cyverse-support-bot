@@ -124,17 +124,23 @@ def handle_command(command, channel, user):
         No return, sends message to Slack.
     """
     command = command.lower().split()
-    command_response_dict = {"who"    : "Today's support person is %s." % ("<@" + get_user_id(slack_client, get_name_from_cal()) + ">"),
-                             "when"   : find_when(command, user),
-                             "why"    : "because we love our users!",
-                             "where"  : "This bot is hosted on %s in the directory %s.\nYou can find my code here: %s." % (socket.getfqdn(), os.path.dirname(os.path.realpath(__file__)), "https://github.com/calvinmclean/cyverse-support-bot"),
-                             "how"    : "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond"),
-                             "all"    : print_this_week()
-                            }
+    # command_response_dict = {"who"    : "Today's support person is %s." % ("<@" + get_user_id(slack_client, get_name_from_cal()) + ">"),
+    #                          "when"   : find_when(command, user),
+    #                          "why"    : "because we love our users!",
+    #                          "where"  : "This bot is hosted on %s in the directory %s.\nYou can find my code here: %s." % (socket.getfqdn(), os.path.dirname(os.path.realpath(__file__)), "https://github.com/calvinmclean/cyverse-support-bot"),
+    #                          "how"    : "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond"),
+    #                          "all"    : print_this_week()
+    #                         }
     if command[0] in hello_words:
         response = "Hello!"
-    elif command[0] in command_response_dict:
-        response = command_response_dict[command[0]]
+    # elif command[0] in command_response_dict:
+    #     response = command_response_dict[command[0]]
+    elif command[0] == "who":   response = "Today's support person is %s." % ("<@" + get_user_id(slack_client, get_name_from_cal()) + ">")
+    elif command[0] == "when":  response = find_when(command, user)
+    elif command[0] == "why":   response = "because we love our users!"
+    elif command[0] == "where": response = "This bot is hosted on %s in the directory %s.\nYou can find my code here: %s." % (socket.getfqdn(), os.path.dirname(os.path.realpath(__file__)), "https://github.com/calvinmclean/cyverse-support-bot"),
+    elif command[0] == "how":   response = "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond"),
+    elif command[0] == "all":   print_this_week()
     else:
         response = "Ask me:\n  `who` is today's support person.\n  `when` is someone's next day\n  `where` I am hosted\n  `how` you can support users\n  `why`"
     logging.info("Sending response to Slack: %s" % response)
