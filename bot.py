@@ -30,7 +30,7 @@ def handle_command(command, channel, user):
     elif command[0] == "swap"   : response = swap(user, get_user_id(slack_client, command[1]))
     elif command[0] == "confirm": response = confirm_swap(user)
     elif command[0] == "decline": response = deny_swap()
-    elif command[0] == "help"   : response = "Ask me:\n  `who` is today's support person.\n  `when` is someone's next day\n  `where` I am hosted\n  `how` you can support users\n  `why`\n  `all` support assignments for the next 7 days"
+    elif command[0] == "help"   : response = "Ask me:\n\t`who` is today's support person.\n\t`when` is someone's next day\n\t`where` I am hosted\n\t`how` you can support users\n\t`all` support assignments for the next 7 days\n\t`why`"
     else                        : response = "I do not understand that request. Ask for help to see what I can do."
     logging.info("Sending response to Slack: %s" % response)
     slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
