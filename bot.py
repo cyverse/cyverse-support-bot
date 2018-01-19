@@ -25,8 +25,8 @@ def handle_command(command, channel, user):
     elif command[0] == "who"    : response = "Today's support person is %s." % ("<@" + get_todays_support_name() + ">")
     elif command[0] == "when"   : response = find_when(command, user)
     elif command[0] == "why"    : response = "because we love our users!"
-    elif command[0] == "where"  : response = "This bot is hosted on %s in the directory %s.\nYou can find my code [here](%s)." % (socket.getfqdn(), dirname(realpath(__file__)), "https://github.com/calvinmclean/cyverse-support-bot"),
-    elif command[0] == "how"    : response = "[RT](%s) or [Intercom](%s)" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond"),
+    elif command[0] == "where"  : response = "This bot is hosted on %s in the directory %s.\nYou can find my code here: https://github.com/calvinmclean/cyverse-support-bot" % (socket.getfqdn(), dirname(realpath(__file__)))
+    elif command[0] == "how"    : response = "http://cerberus.iplantcollaborative.org/rt/ or https://app.intercom.io/a/apps/tpwq3d9w/respond"
     elif command[0] == "all"    : response = next_seven_days()
     elif command[0] == "swap"   : response = swap(user, get_user_id(slack_client, command[1]))
     elif command[0] == "confirm": response = confirm_swap(user)
