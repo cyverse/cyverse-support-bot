@@ -94,6 +94,31 @@ def get_day_from_cal(name):
                 return date.strftime("%A") + " " + date.strftime("%Y-%m-%d")
     return "not on the calendar"
 
+def get_event(name):
+    """
+        Search upcoming events, looking for the specified name.
+
+        Returns:
+            Google Calendar Event ID
+    """
+    logging.info("Getting event ID from calendar for user %s" % name)
+
+    # Check next week
+    now = datetime.datetime.utcnow()
+    now = now.isoformat() + 'Z' # 'Z' indicates UTC time
+    eventsResult = service.events().list(
+        calendarId=CAL_ID, timeMin=now, singleEvents=True,
+        orderBy='startTime').execute()
+    events = eventsResult.get('items', [])
+
+    # Search through events
+    if events:
+        for event in events:
+            desc = event['summary']
+            if name.lower() in desc.lower() and "Atmosphere Support" in desc:
+                return event
+    return None
+
 def print_this_week():
     logging.info("Getting support persons for the next week")
 
@@ -127,17 +152,18 @@ def handle_command(command, channel, user):
 
     if command[0] in hello_words:
         response = "Hello!"
-    elif command[0] == "who":   response = "Today's support person is %s." % ("<@" + get_user_id(slack_client, get_name_from_cal()) + ">")
+    elif command[0] == "who":   response = "Today's support person is %s." % ("<@" + get_name_from_cal() + ">")
     elif command[0] == "when":  response = find_when(command, user)
     elif command[0] == "why":   response = "because we love our users!"
     elif command[0] == "where": response = "This bot is hosted on %s in the directory %s.\nYou can find my code here: %s." % (socket.getfqdn(), os.path.dirname(os.path.realpath(__file__)), "https://github.com/calvinmclean/cyverse-support-bot"),
     elif command[0] == "how":   response = "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond"),
     elif command[0] == "all":   response = print_this_week()
     elif command[0] == "swap":
-        response = "Awaiting confirmation from %s to swap with %s." % ("<@" + get_user_id(slack_client, command[1]) + ">", "<@" + user + ">")
+        user_id = get_user_id(slack_client, command[1])
+        response = "Awaiting confirmation from %s to swap with %s." % ("<@" + user_id + ">", "<@" + user + ">")
         with open("%s/support-bot-swap" % os.path.dirname(os.path.realpath(__file__)), "w") as file:
             file.write(user + "\n")
-            file.write(get_user_id(slack_client, command[1]) + "\n")
+            file.write(user_id + "\n")
     elif command[0] == "confirm": response = confirm_swap(user)
     elif command[0] == "deny" or command[0] == "decline": response = deny_swap()
     else:
@@ -148,18 +174,18 @@ def handle_command(command, channel, user):
 def confirm_swap(user):
     try:
         file = open("%s/support-bot-swap" % os.path.dirname(os.path.realpath(__file__)), "r")
-        user_one = file.readline().rstrip()
-        user_two = file.readline().rstrip()
+        user_one_id = file.readline().rstrip()
+        user_two_id = file.readline().rstrip()
         file.close()
 
-        logging.info("Finished reading users from swap file: %s and %s" % (user_two, user_one))
-        response = "You cannot confirm the pending swap between %s and %s" % ("<@" + get_user_name(slack_client, user_one) + ">", "<@" + get_user_name(slack_client, user_two) + ">")
+        logging.info("Finished reading users from swap file: %s and %s" % (user_two_id, user_one_id))
+        response = "You cannot confirm the pending swap between %s and %s" % ("<@" + user_one_id + ">", "<@" + get_user_name(slack_client, user_two_id) + ">")
 
         # If user sending the confirmation is the second user in swap request, swap confirmed
-        if user == user_two:
-            logging.info("Second user, %s, confirmed the swap with %s" % (user_two, user_one))
-            response = "Swap with %s is confirmed." % ("<@" + get_user_name(slack_client, user_one) + ">")
-            perform_swap(user_one, user_two)
+        if user == user_two_id:
+            logging.info("Second user, %s, confirmed the swap with %s" % (user_two_id, user_one_id))
+            response = "Swap with %s is confirmed." % ("<@" + user_one_id + ">")
+            perform_swap(user_one_id, user_two_id)
     except IOError:
         logging.info("No pending swap requests (file not found)")
         response = "No pending swap requests."
@@ -167,7 +193,20 @@ def confirm_swap(user):
     return response
 
 def perform_swap(user_one, user_two):
-    # TODO: swap days on the Google Calendar
+    # Get upcoming support days for each user
+    user_one_event = get_event(get_user_name(slack_client, user_one))
+    user_two_event = get_event(get_user_name(slack_client, user_two))
+
+    # Swap the descriptions of the two events
+    temp_summary = user_one_event['summary']
+    user_one_event['summary'] = user_two_event['summary']
+    user_two_event['summary'] = temp_summary
+
+    # Update both events
+    service.events().update(calendarId=CAL_ID, eventId=user_one_event['id'], body=user_one_event).execute()
+    service.events().update(calendarId=CAL_ID, eventId=user_two_event['id'], body=user_two_event).execute()
+
+    # Remove swap file
     os.remove("%s/support-bot-swap" % os.path.dirname(os.path.realpath(__file__)))
     logging.info("Deleted swap file after performing swap")
 
@@ -190,8 +229,9 @@ def find_when(name, user):
         response = "The next support day for %s is %s." % (("<@" + user + ">"), get_day_from_cal(get_user_name(slack_client, user)))
     else:
         # Check if name exists in user list
-        if get_user_id(slack_client, name[1]):
-            response = "The next support day for %s is %s." % (("<@" + get_user_id(slack_client, name[1]) + ">"), get_day_from_cal(name[1]))
+        user_id = get_user_id(slack_client, name[1])
+        if user_id:
+            response = "The next support day for %s is %s." % (("<@" + user_id + ">"), get_day_from_cal(name[1]))
         else:
             response = "User %s does not seem to exist in this team." % (name[1])
     return response
