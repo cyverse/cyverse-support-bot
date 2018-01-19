@@ -252,7 +252,7 @@ def get_credentials():
     credentials = store.get()
     if not credentials or credentials.invalid:
         flow = client.flow_from_clientsecrets(GOOGLE_APP_SECRET_PATH,
-		'https://www.googleapis.com/auth/calendar.readonly')
+		'https://www.googleapis.com/auth/calendar')
         flow.user_agent = 'Cyverse Slack Supurt But'
         if flags:
             credentials = tools.run_flow(flow, store, flags)
