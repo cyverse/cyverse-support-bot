@@ -1,4 +1,4 @@
-import httplib2, os, time, oauth, datetime, sys, socket, logging
+import httplib2, time, oauth, datetime, sys, socket, logging
 from slackclient import SlackClient
 from apiclient import discovery
 from oauth2client import client, tools
@@ -20,7 +20,6 @@ def handle_command(command, channel, user):
         No return, sends message to Slack.
     """
     command = command.lower().split()
-
     if command[0] in hello_words: response = "Hello!"
     elif command[0] == "who"    : response = "Today's support person is %s." % ("<@" + get_todays_support_name() + ">")
     elif command[0] == "when"   : response = find_when(command, user)
@@ -262,8 +261,7 @@ def find_when(name, user):
     """
     if name[0] != "when": response = "Command is not 'when'"
     elif len(name) <= 1:  response = "The next support day for %s is %s." % (("<@" + user + ">"), get_next_day(get_user_name(slack_client, user)))
-    else:
-        # User is asking about a different user's next day
+    else: # User is asking about a different user's next day
         user_id = get_user_id(slack_client, name[1])
         if user_id: response = "The next support day for %s is %s." % (("<@" + user_id + ">"), get_next_day(name[1]))
         else:       response = "User %s does not seem to exist in this team." % (name[1])
