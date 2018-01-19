@@ -11,6 +11,29 @@ except ImportError:
     flags = None
 
 
+def handle_command(command, channel, user):
+    """
+        Manages the commands 'who', 'when', 'why', 'where', and 'how'.
+        Also responds to a list of hello_words
+        No return, sends message to Slack.
+    """
+    command = command.lower().split()
+
+    if command[0] in hello_words: response = "Hello!"
+    elif command[0] == "who":     response = "Today's support person is %s." % ("<@" + get_todays_support_name() + ">")
+    elif command[0] == "when":    response = find_when(command, user)
+    elif command[0] == "why":     response = "because we love our users!"
+    elif command[0] == "where":   response = "This bot is hosted on %s in the directory %s.\nYou can find my code here: %s." % (socket.getfqdn(), os.path.dirname(os.path.realpath(__file__)), "https://github.com/calvinmclean/cyverse-support-bot"),
+    elif command[0] == "how":     response = "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond"),
+    elif command[0] == "all":     response = next_seven_days()
+    elif command[0] == "swap":    response = swap(user, get_user_id(slack_client, command[1]))
+    elif command[0] == "confirm": response = confirm_swap(user)
+    elif command[0] == "decline": response = deny_swap()
+    elif command[0] == "help":    response = "Ask me:\n  `who` is today's support person.\n  `when` is someone's next day\n  `where` I am hosted\n  `how` you can support users\n  `why`\n  `all` support assignments for the next 7 days"
+    else:                         response = "I do not understand that request. Ask for help to see what I can do."
+    logging.info("Sending response to Slack: %s" % response)
+    slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
+
 def parse_slack_output(slack_rtm_output):
     """
         The Slack Real Time Messaging API is an events firehose.
@@ -39,7 +62,7 @@ def parse_slack_output(slack_rtm_output):
     return None, None, None
 
 # Get the name for the person doing support on today day
-def get_name_from_cal():
+def get_todays_support_name():
     """
         Search today's events, looking for "Atmosphere Support".
 
@@ -67,7 +90,7 @@ def get_name_from_cal():
                 return desc.split()[0]
     return "no one is on support today"
 
-def get_day_from_cal(name):
+def get_next_day(name):
     """
         Search upcoming events, looking for the specified name.
 
@@ -119,7 +142,13 @@ def get_event(name):
                 return event
     return None
 
-def print_this_week():
+def next_seven_days():
+    """
+        Get a list of users covering support in the next 7 days
+
+        Returns:
+            String of support users
+    """
     logging.info("Getting support persons for the next week")
 
     now = datetime.datetime.utcnow()
@@ -142,36 +171,25 @@ def print_this_week():
                 result += "The support person for %s is %s\n" % (date, name)
     return result
 
-def handle_command(command, channel, user):
-    """
-        Manages the commands 'who', 'when', 'why', 'where', and 'how'.
-        Also responds to a list of hello_words
-        No return, sends message to Slack.
-    """
-    command = command.lower().split()
-
-    if command[0] in hello_words: response = "Hello!"
-    elif command[0] == "who":     response = "Today's support person is %s." % ("<@" + get_name_from_cal() + ">")
-    elif command[0] == "when":    response = find_when(command, user)
-    elif command[0] == "why":     response = "because we love our users!"
-    elif command[0] == "where":   response = "This bot is hosted on %s in the directory %s.\nYou can find my code here: %s." % (socket.getfqdn(), os.path.dirname(os.path.realpath(__file__)), "https://github.com/calvinmclean/cyverse-support-bot"),
-    elif command[0] == "how":     response = "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond"),
-    elif command[0] == "all":     response = print_this_week()
-    elif command[0] == "swap":    response = swap(user, get_user_id(slack_client, command[1]))
-    elif command[0] == "confirm": response = confirm_swap(user)
-    elif command[0] == "decline": response = deny_swap()
-    elif command[0] == "help":    response = "Ask me:\n  `who` is today's support person.\n  `when` is someone's next day\n  `where` I am hosted\n  `how` you can support users\n  `why`\n  `all` support assignments for the next 7 days"
-    else:                         response = "I do not understand that request. Ask for help to see what I can do."
-    logging.info("Sending response to Slack: %s" % response)
-    slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
-
 def swap(user, user_id):
+    """
+        Initial step of swapping days. Creates file with both user ID's to swap
+
+        Returns:
+            String to notify user that swap is initiated
+    """
     with open("%s/support-bot-swap" % os.path.dirname(os.path.realpath(__file__)), "w") as file:
         file.write(user + "\n")
         file.write(user_id + "\n")
     return "Awaiting confirmation from %s to swap with %s." % ("<@" + user_id + ">", "<@" + user + ">")
 
 def confirm_swap(user):
+    """
+        Allow a swap if there is one pending and commanding user is part of the swap
+
+        Returns:
+            String to notify user of swap state
+    """
     try:
         file = open("%s/support-bot-swap" % os.path.dirname(os.path.realpath(__file__)), "r")
         user_one_id = file.readline().rstrip()
@@ -192,7 +210,29 @@ def confirm_swap(user):
 
     return response
 
+def deny_swap():
+    """
+        Deny the swap and delete the file
+
+        Returns:
+            String to notify user of swap state
+    """
+    response = "Swap declined by user."
+    try:
+        os.remove("%s/support-bot-swap" % os.path.dirname(os.path.realpath(__file__)))
+    except OSError:
+        logging.info("File does not exist.")
+        response = "No open swap request to decline."
+    logging.info("Deleted swap file after denying swap")
+    return response
+
 def perform_swap(user_one, user_two):
+    """
+        After swap is confirmed, perform the swap by editing the Google Calendar
+
+        Returns:
+            None
+    """
     # Get upcoming support days for each user
     user_one_event = get_event(get_user_name(slack_client, user_one))
     user_two_event = get_event(get_user_name(slack_client, user_two))
@@ -210,11 +250,6 @@ def perform_swap(user_one, user_two):
     os.remove("%s/support-bot-swap" % os.path.dirname(os.path.realpath(__file__)))
     logging.info("Deleted swap file after performing swap")
 
-def deny_swap():
-    os.remove("%s/support-bot-swap" % os.path.dirname(os.path.realpath(__file__)))
-    logging.info("Deleted swap file after denying swap")
-    return "Swap declined by user."
-
 def find_when(name, user):
     """
         Finds the user's next support day.
@@ -223,43 +258,14 @@ def find_when(name, user):
         If the first word is not 'when', then ignore.
         If no username is specified after 'when', find it based off asking user's ID.
     """
-    if name[0] != "when":
-        response = "Command is not 'when'"
-    elif len(name) <= 1:
-        response = "The next support day for %s is %s." % (("<@" + user + ">"), get_day_from_cal(get_user_name(slack_client, user)))
+    if name[0] != "when": response = "Command is not 'when'"
+    elif len(name) <= 1:  response = "The next support day for %s is %s." % (("<@" + user + ">"), get_next_day(get_user_name(slack_client, user)))
     else:
-        # Check if name exists in user list
+        # User is asking about a different user's next day
         user_id = get_user_id(slack_client, name[1])
-        if user_id:
-            response = "The next support day for %s is %s." % (("<@" + user_id + ">"), get_day_from_cal(name[1]))
-        else:
-            response = "User %s does not seem to exist in this team." % (name[1])
+        if user_id: response = "The next support day for %s is %s." % (("<@" + user_id + ">"), get_next_day(name[1]))
+        else:       response = "User %s does not seem to exist in this team." % (name[1])
     return response
-
-def get_credentials():
-    """
-        Gets valid user credentials from storage.
-
-        If nothing has been stored, or if the stored credentials are invalid,
-        the OAuth2 flow is completed to obtain the new credentials.
-
-        Returns:
-            Credentials, the obtained credential.
-    """
-    logging.info("Getting Google Oauth credentials")
-    credential_path = GOOGLE_APP_OAUTH_SECRET_PATH
-    store = Storage(credential_path)
-    credentials = store.get()
-    if not credentials or credentials.invalid:
-        flow = client.flow_from_clientsecrets(GOOGLE_APP_SECRET_PATH,
-		'https://www.googleapis.com/auth/calendar')
-        flow.user_agent = 'Cyverse Slack Supurt But'
-        if flags:
-            credentials = tools.run_flow(flow, store, flags)
-        else: # Needed only for compatibility with Python 2.6
-            credentials = tools.run(flow, store)
-        print('Storing credentials to ' + GOOGLE_APP_OAUTH_SECRET_PATH)
-    return credentials
 
 def get_user_id(slack_client, name):
     """
@@ -286,6 +292,31 @@ def get_user_name(slack_client, id):
         if 'id' in user and user.get('id') == id:
             return user.get('name')
     return None
+
+def get_credentials():
+    """
+        Gets valid user credentials from storage.
+
+        If nothing has been stored, or if the stored credentials are invalid,
+        the OAuth2 flow is completed to obtain the new credentials.
+
+        Returns:
+            Credentials, the obtained credential.
+    """
+    logging.info("Getting Google Oauth credentials")
+    credential_path = GOOGLE_APP_OAUTH_SECRET_PATH
+    store = Storage(credential_path)
+    credentials = store.get()
+    if not credentials or credentials.invalid:
+        flow = client.flow_from_clientsecrets(GOOGLE_APP_SECRET_PATH,
+		'https://www.googleapis.com/auth/calendar')
+        flow.user_agent = 'Cyverse Slack Supurt But'
+        if flags:
+            credentials = tools.run_flow(flow, store, flags)
+        else: # Needed only for compatibility with Python 2.6
+            credentials = tools.run(flow, store)
+        print('Storing credentials to ' + GOOGLE_APP_OAUTH_SECRET_PATH)
+    return credentials
 
 # constants
 CAL_ID = os.environ.get("CAL_ID")
@@ -329,6 +360,12 @@ if __name__ == "__main__":
             cur_time = time.localtime()
             # or print today's support name if it is a weekday at 8am
             if cur_time.tm_wday < 5 and cur_time.tm_hour == 8 and cur_time.tm_min == 0 and cur_time.tm_sec == 0:
+                try:
+                    os.remove("%s/support-bot-swap" % os.path.dirname(os.path.realpath(__file__)))
+                    logging.info("Deleted pending swap")
+                except OSError:
+                    logging.info("No pending swap to delete")
+
                 handle_command("who", SUPPORT_CHANNEL, None)
                 slack_client.api_call("chat.postMessage", channel=SUPPORT_CHANNEL, text="Don't forget Intercom! :slightly_smiling_face:", as_user=True)
                 logging.info("Sent daily 8am message.")
