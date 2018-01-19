@@ -21,16 +21,16 @@ def handle_command(command, channel, user):
     """
     command = command.lower().split()
     if command[0] in hello_words: response = "Hello!"
-    elif command[0] == "who"    : response = "Today's support person is %s." % ("<@" + get_todays_support_name() + ">")
+    elif command[0] == "who"    : response = get_todays_support_name()
     elif command[0] == "when"   : response = find_when(command, user)
     elif command[0] == "why"    : response = "because we love our users!"
-    elif command[0] == "where"  : response = "This bot is hosted on %s in the directory %s.\nYou can find my code here: https://github.com/calvinmclean/cyverse-support-bot" % (socket.getfqdn(), dirname(realpath(__file__)))
-    elif command[0] == "how"    : response = "http://cerberus.iplantcollaborative.org/rt/ or https://app.intercom.io/a/apps/tpwq3d9w/respond"
+    elif command[0] == "where"  : response = where_am_i
+    elif command[0] == "how"    : response = how_to_support
     elif command[0] == "all"    : response = next_seven_days()
     elif command[0] == "swap"   : response = swap(user, get_user_id(slack_client, command[1]))
     elif command[0] == "confirm": response = confirm_swap(user)
     elif command[0] == "decline": response = deny_swap()
-    elif command[0] == "help"   : response = "Ask me:\n\t`who` is today's support person.\n\t`when` is someone's next day\n\t`where` I am hosted\n\t`how` you can support users\n\t`all` support assignments for the next 7 days\n\t`why`"
+    elif command[0] == "help"   : response = help_msg
     else                        : response = "I do not understand that request. Ask for help to see what I can do."
     logging.info("Sending response to Slack: %s" % response)
     slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
@@ -62,10 +62,9 @@ def parse_slack_output(slack_rtm_output):
                     return text[1].strip().lower(), output['channel'], output['user']
     return None, None, None
 
-# Get the name for the person doing support on today day
 def get_todays_support_name():
     """
-        Search today's events, looking for "Atmosphere Support".
+        Search today's events, looking for "Atmosphere Support" and return the name of the user on support.
 
         Returns:
             Name string
@@ -88,8 +87,8 @@ def get_todays_support_name():
             desc = event['summary']
             # If the event matches, return the first word of summary which is name
             if "Atmosphere Support" in desc:
-                return desc.split()[0]
-    return "no one is on support today"
+                return "Today's support person is %s." % ("<@" + desc.split()[0] + ">")
+    return "No one is on support today."
 
 def get_next_day(name):
     """
@@ -329,6 +328,20 @@ SUPPORT_CHANNEL=environ.get('SUPPORT_CHANNEL', 'general')
 hello_words = {'hello', 'hi', 'howdy', 'hey', 'good morning'}
 slack_client = SlackClient(BOT_USER_OAUTH_TOKEN)
 user_list = None
+
+how_to_support = "http://cerberus.iplantcollaborative.org/rt/ or https://app.intercom.io/a/apps/tpwq3d9w/respond"
+
+where_am_i = "This bot is hosted on %s in the directory %s.\n" \
+           "You can find my code here: https://github.com/calvinmclean/cyverse-support-bot" \
+           % (socket.getfqdn(), dirname(realpath(__file__)))
+
+help_msg = """Ask me:
+    `who` is today's support person.
+    `when` is someone's next day
+    `where` I am hosted
+    `how` you can support users
+    `all` support assignments for the next 7 days
+    `why`"""
 
 if __name__ == "__main__":
 
