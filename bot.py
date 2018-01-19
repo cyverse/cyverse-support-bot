@@ -4,6 +4,8 @@ from apiclient import discovery
 from oauth2client import client, tools
 from oauth2client.file import Storage
 from slackclient import SlackClient
+from os import remove, environ
+from os.path import realpath, dirname
 try:
     import argparse
     flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
@@ -20,17 +22,17 @@ def handle_command(command, channel, user):
     command = command.lower().split()
 
     if command[0] in hello_words: response = "Hello!"
-    elif command[0] == "who":     response = "Today's support person is %s." % ("<@" + get_todays_support_name() + ">")
-    elif command[0] == "when":    response = find_when(command, user)
-    elif command[0] == "why":     response = "because we love our users!"
-    elif command[0] == "where":   response = "This bot is hosted on %s in the directory %s.\nYou can find my code here: %s." % (socket.getfqdn(), os.path.dirname(os.path.realpath(__file__)), "https://github.com/calvinmclean/cyverse-support-bot"),
-    elif command[0] == "how":     response = "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond"),
-    elif command[0] == "all":     response = next_seven_days()
-    elif command[0] == "swap":    response = swap(user, get_user_id(slack_client, command[1]))
+    elif command[0] == "who"    : response = "Today's support person is %s." % ("<@" + get_todays_support_name() + ">")
+    elif command[0] == "when"   : response = find_when(command, user)
+    elif command[0] == "why"    : response = "because we love our users!"
+    elif command[0] == "where"  : response = "This bot is hosted on %s in the directory %s.\nYou can find my code here: %s." % (socket.getfqdn(), dirname(realpath(__file__)), "https://github.com/calvinmclean/cyverse-support-bot"),
+    elif command[0] == "how"    : response = "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond"),
+    elif command[0] == "all"    : response = next_seven_days()
+    elif command[0] == "swap"   : response = swap(user, get_user_id(slack_client, command[1]))
     elif command[0] == "confirm": response = confirm_swap(user)
     elif command[0] == "decline": response = deny_swap()
-    elif command[0] == "help":    response = "Ask me:\n  `who` is today's support person.\n  `when` is someone's next day\n  `where` I am hosted\n  `how` you can support users\n  `why`\n  `all` support assignments for the next 7 days"
-    else:                         response = "I do not understand that request. Ask for help to see what I can do."
+    elif command[0] == "help"   : response = "Ask me:\n  `who` is today's support person.\n  `when` is someone's next day\n  `where` I am hosted\n  `how` you can support users\n  `why`\n  `all` support assignments for the next 7 days"
+    else                        : response = "I do not understand that request. Ask for help to see what I can do."
     logging.info("Sending response to Slack: %s" % response)
     slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
 
@@ -178,7 +180,7 @@ def swap(user, user_id):
         Returns:
             String to notify user that swap is initiated
     """
-    with open("%s/support-bot-swap" % os.path.dirname(os.path.realpath(__file__)), "w") as file:
+    with open("%s/support-bot-swap" % dirname(realpath(__file__)), "w") as file:
         file.write(user + "\n")
         file.write(user_id + "\n")
     return "Awaiting confirmation from %s to swap with %s." % ("<@" + user_id + ">", "<@" + user + ">")
@@ -191,7 +193,7 @@ def confirm_swap(user):
             String to notify user of swap state
     """
     try:
-        file = open("%s/support-bot-swap" % os.path.dirname(os.path.realpath(__file__)), "r")
+        file = open("%s/support-bot-swap" % dirname(realpath(__file__)), "r")
         user_one_id = file.readline().rstrip()
         user_two_id = file.readline().rstrip()
         file.close()
@@ -219,7 +221,7 @@ def deny_swap():
     """
     response = "Swap declined by user."
     try:
-        os.remove("%s/support-bot-swap" % os.path.dirname(os.path.realpath(__file__)))
+        remove("%s/support-bot-swap" % dirname(realpath(__file__)))
     except OSError:
         logging.info("File does not exist.")
         response = "No open swap request to decline."
@@ -247,7 +249,7 @@ def perform_swap(user_one, user_two):
     service.events().update(calendarId=CAL_ID, eventId=user_two_event['id'], body=user_two_event).execute()
 
     # Remove swap file
-    os.remove("%s/support-bot-swap" % os.path.dirname(os.path.realpath(__file__)))
+    remove("%s/support-bot-swap" % dirname(realpath(__file__)))
     logging.info("Deleted swap file after performing swap")
 
 def find_when(name, user):
@@ -319,20 +321,20 @@ def get_credentials():
     return credentials
 
 # constants
-CAL_ID = os.environ.get("CAL_ID")
-BOT_NAME = os.environ.get("BOT_NAME")
+CAL_ID = environ.get("CAL_ID")
+BOT_NAME = environ.get("BOT_NAME")
 BOT_ID = None
-GOOGLE_APP_SECRET_PATH = os.environ.get("GOOGLE_APP_SECRET_PATH")
-GOOGLE_APP_OAUTH_SECRET_PATH = os.environ.get("GOOGLE_APP_OAUTH_SECRET_PATH", ".oauth_secret_json")
-BOT_USER_OAUTH_TOKEN=os.environ.get('BOT_USER_OAUTH_TOKEN')
-SUPPORT_CHANNEL=os.environ.get('SUPPORT_CHANNEL', 'general')
+GOOGLE_APP_SECRET_PATH = environ.get("GOOGLE_APP_SECRET_PATH")
+GOOGLE_APP_OAUTH_SECRET_PATH = environ.get("GOOGLE_APP_OAUTH_SECRET_PATH", ".oauth_secret_json")
+BOT_USER_OAUTH_TOKEN=environ.get('BOT_USER_OAUTH_TOKEN')
+SUPPORT_CHANNEL=environ.get('SUPPORT_CHANNEL', 'general')
 hello_words = {'hello', 'hi', 'howdy', 'hey', 'good morning'}
 slack_client = SlackClient(BOT_USER_OAUTH_TOKEN)
 user_list = None
 
 if __name__ == "__main__":
 
-    logging.basicConfig(filename="%s/cyverse-support-bot.log" % os.path.dirname(os.path.realpath(__file__)),
+    logging.basicConfig(filename="%s/cyverse-support-bot.log" % dirname(realpath(__file__)),
                         filemode='a',
                         format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
                         datefmt='%H:%M:%S',
@@ -361,7 +363,7 @@ if __name__ == "__main__":
             # or print today's support name if it is a weekday at 8am
             if cur_time.tm_wday < 5 and cur_time.tm_hour == 8 and cur_time.tm_min == 0 and cur_time.tm_sec == 0:
                 try:
-                    os.remove("%s/support-bot-swap" % os.path.dirname(os.path.realpath(__file__)))
+                    remove("%s/support-bot-swap" % dirname(realpath(__file__)))
                     logging.info("Deleted pending swap")
                 except OSError:
                     logging.info("No pending swap to delete")
