@@ -150,26 +150,26 @@ def handle_command(command, channel, user):
     """
     command = command.lower().split()
 
-    if command[0] in hello_words:
-        response = "Hello!"
-    elif command[0] == "who":   response = "Today's support person is %s." % ("<@" + get_name_from_cal() + ">")
-    elif command[0] == "when":  response = find_when(command, user)
-    elif command[0] == "why":   response = "because we love our users!"
-    elif command[0] == "where": response = "This bot is hosted on %s in the directory %s.\nYou can find my code here: %s." % (socket.getfqdn(), os.path.dirname(os.path.realpath(__file__)), "https://github.com/calvinmclean/cyverse-support-bot"),
-    elif command[0] == "how":   response = "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond"),
-    elif command[0] == "all":   response = print_this_week()
-    elif command[0] == "swap":
-        user_id = get_user_id(slack_client, command[1])
-        response = "Awaiting confirmation from %s to swap with %s." % ("<@" + user_id + ">", "<@" + user + ">")
-        with open("%s/support-bot-swap" % os.path.dirname(os.path.realpath(__file__)), "w") as file:
-            file.write(user + "\n")
-            file.write(user_id + "\n")
+    if command[0] in hello_words: response = "Hello!"
+    elif command[0] == "who":     response = "Today's support person is %s." % ("<@" + get_name_from_cal() + ">")
+    elif command[0] == "when":    response = find_when(command, user)
+    elif command[0] == "why":     response = "because we love our users!"
+    elif command[0] == "where":   response = "This bot is hosted on %s in the directory %s.\nYou can find my code here: %s." % (socket.getfqdn(), os.path.dirname(os.path.realpath(__file__)), "https://github.com/calvinmclean/cyverse-support-bot"),
+    elif command[0] == "how":     response = "%s or %s" % ("http://cerberus.iplantcollaborative.org/rt/", "https://app.intercom.io/a/apps/tpwq3d9w/respond"),
+    elif command[0] == "all":     response = print_this_week()
+    elif command[0] == "swap":    response = swap(user, get_user_id(slack_client, command[1]))
     elif command[0] == "confirm": response = confirm_swap(user)
-    elif command[0] == "deny" or command[0] == "decline": response = deny_swap()
-    else:
-        response = "Ask me:\n  `who` is today's support person.\n  `when` is someone's next day\n  `where` I am hosted\n  `how` you can support users\n  `why`"
+    elif command[0] == "decline": response = deny_swap()
+    elif command[0] == "help":    response = "Ask me:\n  `who` is today's support person.\n  `when` is someone's next day\n  `where` I am hosted\n  `how` you can support users\n  `why`\n  `all` support assignments for the next 7 days"
+    else:                         response = "I do not understand that request. Ask for help to see what I can do."
     logging.info("Sending response to Slack: %s" % response)
     slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
+
+def swap(user, user_id):
+    with open("%s/support-bot-swap" % os.path.dirname(os.path.realpath(__file__)), "w") as file:
+        file.write(user + "\n")
+        file.write(user_id + "\n")
+    return "Awaiting confirmation from %s to swap with %s." % ("<@" + user_id + ">", "<@" + user + ">")
 
 def confirm_swap(user):
     try:
