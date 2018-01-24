@@ -21,7 +21,7 @@ def handle_command(command, channel, user):
     """
     command = command.lower().split()
     if command[0] in hello_words: response = "Hello!"
-    elif ' '.join(command[0:4]) == "who is on support" : response = fancy_who(command[4:])
+    elif ' '.join(command[0:4]) == "who is on support" : response = fancy_who(command[4])
     elif command[0] == "who"    : response = get_todays_support_name()
     elif command[0] == "when"   : response = find_when(command, user)
     elif command[0] == "why"    : response = "because we love our users!"
@@ -174,7 +174,7 @@ def next_seven_days():
     return result
 
 def fancy_who(info):
-    logging.info("Handling fancy who request.")
+    logging.info("Handling fancy who request: %s." % info)
 
     # Check next 7 days
     now = datetime.datetime.utcnow()
@@ -185,18 +185,22 @@ def fancy_who(info):
     events = eventsResult.get('items', [])
 
     num_days = 0
-    week = {}
+    week = []
     if events:
         for event in events:
             desc = event['summary']
             if "Atmosphere Support" in desc and num_days < 7:
                 num_days += 1
                 date = datetime.datetime.strptime(event['start'].get('dateTime', event['start'].get('date')), "%Y-%m-%d")
-                date = "%-9s %s" % (date.strftime("%A"), date.strftime("%Y-%m-%d"))
+                date = "%s %s" % (date.strftime("%A"), date.strftime("%Y-%m-%d"))
                 name = desc.split()[0]
                 week.append("The support person for `%s` is %s\n" % (date, name))
-    if info.contains("today"): return week[0]
-    if info.contains("tomorrow"): return week[1]
+        if "today" in info: return week[0]
+        if "tomorrow" in info: return week[1]
+        else:
+            for day in week:
+                if info in day.lower(): return day
+    return "Sorry, I do not have an answer to this question."
 
 
 def swap(user, user_id):
