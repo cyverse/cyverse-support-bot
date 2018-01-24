@@ -63,6 +63,15 @@ def parse_slack_output(slack_rtm_output):
                     return text[1].strip().lower(), output['channel'], output['user']
     return None, None, None
 
+def get_event_list():
+    # Check next week
+    now = datetime.datetime.utcnow()
+    now = now.isoformat() + 'Z' # 'Z' indicates UTC time
+    eventsResult = service.events().list(
+        calendarId=CAL_ID, timeMin=now, singleEvents=True,
+        orderBy='startTime').execute()
+    return eventsResult.get('items', [])
+
 def get_todays_support_name():
     """
         Search today's events, looking for "Atmosphere Support" and return the name of the user on support.
@@ -72,15 +81,16 @@ def get_todays_support_name():
     """
     logging.info("Getting name from calendar for today")
 
-    # Check next 24 hours
-    now = datetime.datetime.utcnow()
-    later = now + datetime.timedelta(hours=23)
-    now = now.isoformat() + 'Z' # 'Z' indicates UTC time
-    later = later.isoformat() + 'Z'
-    eventsResult = service.events().list(
-        calendarId=CAL_ID, timeMin=now, timeMax=later, singleEvents=True,
-        orderBy='startTime').execute()
-    events = eventsResult.get('items', [])
+    # # Check next 24 hours
+    # now = datetime.datetime.utcnow()
+    # later = now + datetime.timedelta(hours=23)
+    # now = now.isoformat() + 'Z' # 'Z' indicates UTC time
+    # later = later.isoformat() + 'Z'
+    # eventsResult = service.events().list(
+    #     calendarId=CAL_ID, timeMin=now, timeMax=later, singleEvents=True,
+    #     orderBy='startTime').execute()
+    # events = eventsResult.get('items', [])
+    events = get_event_list()
 
     # Search through events looking for 'Atmosphere Support'
     if events:
@@ -100,13 +110,7 @@ def get_next_day(name):
     """
     logging.info("Getting day from calendar for user %s" % name)
 
-    # Check next week
-    now = datetime.datetime.utcnow()
-    now = now.isoformat() + 'Z' # 'Z' indicates UTC time
-    eventsResult = service.events().list(
-        calendarId=CAL_ID, timeMin=now, singleEvents=True,
-        orderBy='startTime').execute()
-    events = eventsResult.get('items', [])
+    events = get_event_list()
 
     # Search through events
     if events:
@@ -127,13 +131,7 @@ def get_event(name):
     """
     logging.info("Getting event ID from calendar for user %s" % name)
 
-    # Check next week
-    now = datetime.datetime.utcnow()
-    now = now.isoformat() + 'Z' # 'Z' indicates UTC time
-    eventsResult = service.events().list(
-        calendarId=CAL_ID, timeMin=now, singleEvents=True,
-        orderBy='startTime').execute()
-    events = eventsResult.get('items', [])
+    events = get_event_list()
 
     # Search through events
     if events:
@@ -152,12 +150,7 @@ def next_seven_days():
     """
     logging.info("Getting support persons for the next week")
 
-    now = datetime.datetime.utcnow()
-    now = now.isoformat() + 'Z' # 'Z' indicates UTC time
-    eventsResult = service.events().list(
-        calendarId=CAL_ID, timeMin=now, singleEvents=True,
-        orderBy='startTime').execute()
-    events = eventsResult.get('items', [])
+    events = get_event_list()
 
     result = ""
     num_days = 0
@@ -176,13 +169,7 @@ def next_seven_days():
 def fancy_who(info):
     logging.info("Handling fancy who request: %s." % info)
 
-    # Check next 7 days
-    now = datetime.datetime.utcnow()
-    now = now.isoformat() + 'Z' # 'Z' indicates UTC time
-    eventsResult = service.events().list(
-        calendarId=CAL_ID, timeMin=now, singleEvents=True,
-        orderBy='startTime').execute()
-    events = eventsResult.get('items', [])
+    events = get_event_list()
 
     # Remove non-alphanumeric characters
     info = re.sub(r'\W+', '', info)
