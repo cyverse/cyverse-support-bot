@@ -168,7 +168,7 @@ def next_seven_days():
                 num_days += 1
                 date = datetime.datetime.strptime(event['start'].get('dateTime', event['start'].get('date')), "%Y-%m-%d")
                 name = desc.split()[0]
-                result += "The support person for %s is %s\n" % (date, name)
+                result += "The support person for %s %s is %s\n" % (date.strftime("%A"), date, name)
     return result
 
 def swap(user, user_id):
