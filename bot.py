@@ -1,4 +1,4 @@
-import httplib2, time, oauth, datetime, sys, socket, logging
+import httplib2, time, oauth, datetime, sys, socket, logging, re
 from slackclient import SlackClient
 from apiclient import discovery
 from oauth2client import client, tools
@@ -183,6 +183,9 @@ def fancy_who(info):
         calendarId=CAL_ID, timeMin=now, singleEvents=True,
         orderBy='startTime').execute()
     events = eventsResult.get('items', [])
+
+    # Remove non-alphanumeric characters
+    info = re.sub(r'\W+', '', info)
 
     num_days = 0
     week = []
