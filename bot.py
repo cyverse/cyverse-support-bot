@@ -81,15 +81,6 @@ def get_todays_support_name():
     """
     logging.info("Getting name from calendar for today")
 
-    # # Check next 24 hours
-    # now = datetime.datetime.utcnow()
-    # later = now + datetime.timedelta(hours=23)
-    # now = now.isoformat() + 'Z' # 'Z' indicates UTC time
-    # later = later.isoformat() + 'Z'
-    # eventsResult = service.events().list(
-    #     calendarId=CAL_ID, timeMin=now, timeMax=later, singleEvents=True,
-    #     orderBy='startTime').execute()
-    # events = eventsResult.get('items', [])
     events = get_event_list()
 
     # Search through events looking for 'Atmosphere Support'
