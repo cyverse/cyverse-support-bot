@@ -167,8 +167,9 @@ def next_seven_days():
             if "Atmosphere Support" in desc and num_days < 7:
                 num_days += 1
                 date = datetime.datetime.strptime(event['start'].get('dateTime', event['start'].get('date')), "%Y-%m-%d")
+                date = "%-9s %s" % (date.strftime("%A"), date.strftime("%Y-%m-%d"))
                 name = desc.split()[0]
-                result += "The support person for %s %s is %s\n" % (date.strftime("%A"), date, name)
+                result += "The support person for `%s` is %s\n" % (date, name)
     return result
 
 def swap(user, user_id):
@@ -259,10 +260,10 @@ def find_when(name, user):
         If no username is specified after 'when', find it based off asking user's ID.
     """
     if name[0] != "when": response = "Command is not 'when'"
-    elif len(name) <= 1:  response = "The next support day for %s is %s." % (("<@" + user + ">"), get_next_day(get_user_name(slack_client, user)))
+    elif len(name) <= 1:  response = "The next support day for %s is `%s`." % (("<@" + user + ">"), get_next_day(get_user_name(slack_client, user)))
     else: # User is asking about a different user's next day
         user_id = get_user_id(slack_client, name[1])
-        if user_id: response = "The next support day for %s is %s." % (("<@" + user_id + ">"), get_next_day(name[1]))
+        if user_id: response = "The next support day for %s is `%s`." % (("<@" + user_id + ">"), get_next_day(name[1]))
         else:       response = "User %s does not seem to exist in this team." % (name[1])
     return response
 
