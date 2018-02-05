@@ -20,18 +20,18 @@ def handle_command(command, channel, user):
         Also responds to a list of hello_words
         No return, sends message to Slack.
     """
-    command = command.lower().split()
-    if ' '.join(command[0:4]) == "who is on support" : response = fancy_who(command[4])
-    elif command[0] == "who"  and len(command) == 1 : response = get_todays_support_name()
-    elif command[0] == "when" and len(command) <= 2 : response = find_when(command, user)
-    elif ' '.join(command) == "where" : response = where_am_i
-    elif ' '.join(command) == "how"   : response = how_to_support
-    elif command[0] == "all"    : response = next_seven_days()
-    elif command[0] == "swap"   : response = swap(user, get_user_id(slack_client, command[1]))
-    elif command[0] == "confirm": response = confirm_swap(user)
-    elif command[0] == "decline": response = deny_swap()
-    elif command[0] == "help"   : response = help_msg
-    else                        : response = chatbot.get_response(' '.join(command)).text
+    command = command.lower()
+    if   command.startswith("who is on support")          : response = fancy_who(command[4])
+    elif command.startswith("who") and len(command) == 1  : response = get_todays_support_name()
+    elif command.startswith("when") and len(command) <= 2 : response = find_when(command, user)
+    elif command.startswith("all")                        : response = next_seven_days()
+    elif command.startswith("swap")                       : response = swap(user, get_user_id(slack_client, command[1]))
+    elif command.startswith("confirm")                    : response = confirm_swap(user)
+    elif command.startswith("decline")                    : response = deny_swap()
+    elif command.startswith("help")                       : response = help_msg
+    elif command == "how"                                 : response = how_to_support
+    elif command == "where"                               : response = where_am_i
+    else                                                  : response = chatbot.get_response(' '.join(command)).text
     logging.info("Sending response to Slack: %s" % response)
     slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
 
