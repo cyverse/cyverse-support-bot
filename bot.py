@@ -332,8 +332,8 @@ user_list = None
 
 how_to_support = "http://cerberus.iplantcollaborative.org/rt/ or https://app.intercom.io/a/apps/tpwq3d9w/respond"
 
-where_am_i = "This bot is hosted on %s in the directory %s.\n" \
-           "You can find my code here: https://github.com/calvinmclean/cyverse-support-bot" \
+where_am_i = "This bot is hosted on %s in the directory `%s`.\n" \
+           "You can find my code here: github.com/calvinmclean/cyverse-support-bot" \
            % (socket.getfqdn(), dirname(realpath(__file__)))
 
 help_msg = """Ask me:
