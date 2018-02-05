@@ -21,18 +21,17 @@ def handle_command(command, channel, user):
         No return, sends message to Slack.
     """
     command = command.lower().split()
-    # if command[0] in hello_words: response = "Hello!"
-    elif ' '.join(command[0:4]) == "who is on support" : response = fancy_who(command[4])
-    elif command[0] == "who"    : response = get_todays_support_name()
-    elif command[0] == "when"   : response = find_when(command, user)
-    elif command[0] == "where"  : response = where_am_i
-    elif command[0] == "how"    : response = how_to_support
+    if ' '.join(command[0:4]) == "who is on support" : response = fancy_who(command[4])
+    elif command[0] == "who"  and len(command) == 1 : response = get_todays_support_name()
+    elif command[0] == "when" and len(command) <= 2 : response = find_when(command, user)
+    elif ' '.join(command) == "where" : response = where_am_i
+    elif ' '.join(command) == "how"   : response = how_to_support
     elif command[0] == "all"    : response = next_seven_days()
     elif command[0] == "swap"   : response = swap(user, get_user_id(slack_client, command[1]))
     elif command[0] == "confirm": response = confirm_swap(user)
     elif command[0] == "decline": response = deny_swap()
     elif command[0] == "help"   : response = help_msg
-    else                        : response = chatbot.get_response(command)
+    else                        : response = chatbot.get_response(' '.join(command)).text
     logging.info("Sending response to Slack: %s" % response)
     slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
 
@@ -49,18 +48,7 @@ def parse_slack_output(slack_rtm_output):
             if output and 'text' in output and ("<@" + BOT_ID + ">") in output['text']:
                 # return text after the @ mention, whitespace removed
                 text = output['text'].split(("<@" + BOT_ID + ">"))
-                if text[0].strip().lower() in hello_words:
-                    slack_client.api_call("chat.postMessage",
-                        channel=output['channel'],
-                        text=("Hello " + "<@" + output['user'] + ">!"),
-                        as_user=True)
-                if text[0].strip().lower().startswith("thank"):
-                    slack_client.api_call("chat.postMessage",
-                        channel=output['channel'],
-                        text=("You're welcome " + "<@" + output['user'] + ">!"),
-                        as_user=True)
-                else:
-                    return text[1].strip().lower(), output['channel'], output['user']
+                return text[1].strip().lower(), output['channel'], output['user']
     return None, None, None
 
 def get_event_list():
