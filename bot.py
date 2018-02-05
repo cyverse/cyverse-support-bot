@@ -23,7 +23,7 @@ def handle_command(command, channel, user):
     command = command.lower()
     if   command.startswith("who is on support")          : response = fancy_who(command.split()[4])
     elif command.startswith("who") and len(command) == 3  : response = get_todays_support_name()
-    elif command.startswith("when") and len(command) <= 4 : response = find_when(command.split(), user)
+    elif command.startswith("when") and len(command.split()) <= 2 : response = find_when(command.split(), user)
     elif command.startswith("all")                        : response = next_seven_days()
     elif command.startswith("swap")                       : response = swap(user, get_user_id(slack_client, command.split()[1]))
     elif command.startswith("confirm")                    : response = confirm_swap(user)
