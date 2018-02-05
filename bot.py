@@ -6,6 +6,7 @@ from oauth2client.file import Storage
 from slackclient import SlackClient
 from os import remove, environ
 from os.path import realpath, dirname
+from chatterbot import ChatBot
 try:
     import argparse
     flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
@@ -20,11 +21,10 @@ def handle_command(command, channel, user):
         No return, sends message to Slack.
     """
     command = command.lower().split()
-    if command[0] in hello_words: response = "Hello!"
+    # if command[0] in hello_words: response = "Hello!"
     elif ' '.join(command[0:4]) == "who is on support" : response = fancy_who(command[4])
     elif command[0] == "who"    : response = get_todays_support_name()
     elif command[0] == "when"   : response = find_when(command, user)
-    elif command[0] == "why"    : response = "because we love our users!"
     elif command[0] == "where"  : response = where_am_i
     elif command[0] == "how"    : response = how_to_support
     elif command[0] == "all"    : response = next_seven_days()
@@ -32,7 +32,7 @@ def handle_command(command, channel, user):
     elif command[0] == "confirm": response = confirm_swap(user)
     elif command[0] == "decline": response = deny_swap()
     elif command[0] == "help"   : response = help_msg
-    else                        : response = "I do not understand that request. Ask for help to see what I can do."
+    else                        : response = chatbot.get_response(command)
     logging.info("Sending response to Slack: %s" % response)
     slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
 
@@ -373,6 +373,13 @@ if __name__ == "__main__":
     api_call = slack_client.api_call("users.list")
     if api_call.get('ok'):
         user_list = api_call.get('members')
+
+    # Create and train chatterbot
+    chatbot = ChatBot(
+        'CyVerse Support Bot',
+        trainer='chatterbot.trainers.ChatterBotCorpusTrainer',
+    )
+    chatbot.train("chatterbot.corpus.english")
 
     # SLACK
     BOT_ID = get_user_id(slack_client, BOT_NAME)
