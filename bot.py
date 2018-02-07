@@ -372,6 +372,11 @@ if __name__ == "__main__":
     chatbot = ChatBot(
         'CyVerse Support Bot',
         trainer='chatterbot.trainers.ChatterBotCorpusTrainer',
+        storage_adapter='chatterbot.storage.MongoDatabaseAdapter',
+        database='chatterbot-database',
+        filters=[
+            'chatterbot.filters.RepetitiveResponseFilter'
+        ],
         logic_adapters=[
             "chatterbot.logic.TimeLogicAdapter",
             "chatterbot.logic.MathematicalEvaluation",
