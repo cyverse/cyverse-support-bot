@@ -20,15 +20,15 @@ def handle_command(command, channel, user):
         Also responds to a list of hello_words
         No return, sends message to Slack.
     """
-    command = command.lower()
+    command = command.lower().strip()
     if   command.startswith("who is on support")          : response = fancy_who(command.split()[4])
     elif command.startswith("who") and len(command) == 3  : response = get_todays_support_name()
     elif command.startswith("when") and len(command.split()) <= 2 : response = find_when(command.split(), user)
     elif command.startswith("all")                        : response = next_seven_days()
     elif command.startswith("swap")                       : response = swap(user, get_user_id(slack_client, command.split()[1]))
-    elif command.startswith("confirm")                    : response = confirm_swap(user)
-    elif command.startswith("decline")                    : response = deny_swap()
-    elif command.startswith("help")                       : response = help_msg
+    elif command.startswith(("confirm", "accept"))                    : response = confirm_swap(user)
+    elif command.startswith(("decline", "deny"))          : response = deny_swap()
+    elif command.startswith(("help", "man"))              : response = help_msg
     elif command == "how"                                 : response = how_to_support
     elif command == "where"                               : response = where_am_i
     else                                                  : response = chatbot.get_response(' '.join(command)).text
@@ -48,6 +48,8 @@ def parse_slack_output(slack_rtm_output):
             if output and 'text' in output and ("<@" + BOT_ID + ">") in output['text']:
                 # return text after the @ mention, whitespace removed
                 text = output['text'].split(("<@" + BOT_ID + ">"))
+                if text[0].strip().lower() == "man":
+                    return text[0].strip().lower(), output['channel'], output['user']
                 return text[1].strip().lower(), output['channel'], output['user']
     return None, None, None
 
@@ -193,8 +195,8 @@ def confirm_swap(user):
     """
     try:
         file = open("%s/support-bot-swap" % dirname(realpath(__file__)), "r")
-        user_one_id = file.readline().rstrip()
-        user_two_id = file.readline().rstrip()
+        user_one_id = file.readline().strip()
+        user_two_id = file.readline().strip()
         file.close()
 
         logging.info("Finished reading users from swap file: %s and %s" % (user_two_id, user_one_id))
@@ -338,11 +340,15 @@ where_am_i = "This bot is hosted on %s in the directory `%s`.\n" \
 
 help_msg = """Ask me:
     `who` is today's support person.
-    `when` is someone's next day
+    `when` is someone's next day (optional username argument)
     `where` I am hosted
     `how` you can support users
     `all` support assignments for the next 7 days
-    `why`"""
+    `swap <username>` [BETA disabled] initiate a swap with another user that must be approved before 8am tomorrow
+    `deny`/`decline` [BETA disabled] if someone tried to swap with you, decline that swap
+    `confirm`/`accept` [BETA disabled] if someone tried to swap with you, accept that swap
+    `man`/`help` to see this message
+    If you ask me something other than something here, I use github.com/gunthercox/ChatterBot to come up with a clever response"""
 
 if __name__ == "__main__":
 
