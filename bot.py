@@ -31,7 +31,7 @@ def handle_command(command, channel, user):
     elif command.startswith(("help", "man"))              : response = help_msg
     elif command == "how"                                 : response = how_to_support
     elif command == "where"                               : response = where_am_i
-    else                                                  : response = chatbot.get_response(' '.join(command)).text
+    else                                                  : response = chatbot.get_response(command).text
     logging.info("Sending response to Slack: %s" % response)
     slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
 
