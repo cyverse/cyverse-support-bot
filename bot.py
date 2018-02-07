@@ -378,9 +378,9 @@ if __name__ == "__main__":
             'chatterbot.filters.RepetitiveResponseFilter'
         ],
         logic_adapters=[
-            "chatterbot.logic.TimeLogicAdapter",
+            "chatterbot.logic.BestMatch",
             "chatterbot.logic.MathematicalEvaluation",
-            "chatterbot.logic.BestMatch"
+            "chatterbot.logic.TimeLogicAdapter"
         ]
     )
     chatbot.train("chatterbot.corpus.english")
