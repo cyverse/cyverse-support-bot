@@ -25,8 +25,8 @@ def handle_command(command, channel, user):
     elif command.startswith("who") and len(command) == 3  : response = get_todays_support_name()
     elif command.startswith("when") and len(command.split()) <= 2 : response = find_when(command.split(), user)
     elif command.startswith("all")                        : response = next_seven_days()
-    elif command.startswith("swap")                       : response = swap(user, get_user_id(slack_client, command.split()[1]))
-    elif command.startswith(("confirm", "accept"))                    : response = confirm_swap(user)
+    elif command.startswith("swap") and len(command.split()) > 1 : response = swap(user, get_user_id(slack_client, command.split()[1]))
+    elif command.startswith(("confirm", "accept"))        : response = confirm_swap(user)
     elif command.startswith(("decline", "deny"))          : response = deny_swap()
     elif command.startswith(("help", "man"))              : response = help_msg
     elif command == "how"                                 : response = how_to_support
@@ -344,9 +344,9 @@ help_msg = """Ask me:
     `where` I am hosted
     `how` you can support users
     `all` support assignments for the next 7 days
-    `swap <username>` [BETA disabled] initiate a swap with another user that must be approved before 8am tomorrow
-    `deny`/`decline` [BETA disabled] if someone tried to swap with you, decline that swap
-    `confirm`/`accept` [BETA disabled] if someone tried to swap with you, accept that swap
+    [BETA disabled] ~`swap <username>` initiate a swap with another user that must be approved before 8am tomorrow~
+    [BETA disabled] ~`deny`/`decline` if someone tried to swap with you, decline that swap~
+    [BETA disabled] ~`confirm`/`accept` if someone tried to swap with you, accept that swap~
     `man`/`help` to see this message
     If you ask me something other than something here, I use github.com/gunthercox/ChatterBot to come up with a clever response"""
 
