@@ -379,8 +379,7 @@ if __name__ == "__main__":
         ],
         logic_adapters=[
             "chatterbot.logic.BestMatch",
-            "chatterbot.logic.MathematicalEvaluation",
-            "chatterbot.logic.TimeLogicAdapter"
+            "chatterbot.logic.MathematicalEvaluation"
         ]
     )
     chatbot.train("chatterbot.corpus.english")
