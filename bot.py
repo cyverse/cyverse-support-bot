@@ -372,6 +372,11 @@ if __name__ == "__main__":
     chatbot = ChatBot(
         'CyVerse Support Bot',
         trainer='chatterbot.trainers.ChatterBotCorpusTrainer',
+        logic_adapters=[
+            "chatterbot.logic.TimeLogicAdapter",
+            "chatterbot.logic.MathematicalEvaluation",
+            "chatterbot.logic.BestMatch"
+        ]
     )
     chatbot.train("chatterbot.corpus.english")
 
