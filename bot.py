@@ -21,6 +21,9 @@ def handle_command(command, channel, user):
         No return, sends message to Slack.
     """
     command = command.lower().strip()
+    if command[-1] == '?':
+        command = command[0:-1]
+
     if   command.startswith("who is on support")          : response = fancy_who(command.split()[4])
     elif command.startswith("who") and len(command) == 3  : response = get_todays_support_name()
     elif command.startswith("when") and len(command.split()) <= 2 : response = find_when(command.split(), user)
