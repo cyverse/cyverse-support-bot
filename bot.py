@@ -82,7 +82,10 @@ def get_todays_support_name():
             desc = event['summary']
             # If the event matches, return the first word of summary which is name
             if "Atmosphere Support" in desc:
-                return "Today's support person is %s." % ("<@" + desc.split()[0] + ">")
+                date = datetime.datetime.strptime(event['start'].get('dateTime', event['start'].get('date')), "%Y-%m-%d")
+                now = datetime.datetime.now()
+                if date == now:
+                    return "Today's support person is %s." % ("<@" + desc.split()[0] + ">")
     return "No one is on support today."
 
 def get_next_day(name):
