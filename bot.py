@@ -25,19 +25,32 @@ def handle_command(command, channel, user):
     if command[-1] == '?':
         command = command[0:-1]
 
-    if   command.startswith("who is on support")          : response = fancy_who(command.split()[4])
-    elif command.startswith("who") and len(command) == 3  : response = get_todays_support_name()
-    elif command.startswith("when") and len(command.split()) <= 2 : response = find_when(command.split(), user)
-    elif command.startswith("all")                        : response = next_seven_days()
-    elif command.startswith("swap") and len(command.split()) > 1 : response = swap(user, get_user_id(slack_client, command.split()[1]))
-    elif command.startswith(("confirm", "accept"))        : response = confirm_swap(user)
-    elif command.startswith(("decline", "deny"))          : response = deny_swap()
-    elif command.startswith(("help", "man"))              : response = help_msg
-    elif command == "how"                                 : response = how_to_support
-    elif command == "where"                               : response = where_am_i
-    else                                                  : response = chatbot.get_response(command).text
+    if command.startswith("who is on support"):
+        response = fancy_who(command.split()[4])
+    elif command.startswith("who") and len(command) == 3:
+        response = get_todays_support_name()
+    elif command.startswith("when") and len(command.split()) <= 2:
+        response = find_when(command.split(), user)
+    elif command.startswith("all"):
+        response = next_seven_days()
+    elif command.startswith("swap") and len(command.split()) > 1:
+        response = swap(user, get_user_id(slack_client, command.split()[1]))
+    elif command.startswith(("confirm", "accept")):
+        response = confirm_swap(user)
+    elif command.startswith(("decline", "deny")):
+        response = deny_swap()
+    elif command.startswith(("help", "man")):
+        response = help_msg
+    elif command == "how":
+        response = how_to_support
+    elif command == "where":
+        response = where_am_i
+    else:
+        response = chatbot.get_response(command).text
     logging.info("Sending response to Slack: %s" % response)
-    slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
+    slack_client.api_call(
+        "chat.postMessage", channel=channel, text=response, as_user=True)
+
 
 def parse_slack_output(slack_rtm_output):
     """
@@ -49,22 +62,27 @@ def parse_slack_output(slack_rtm_output):
 
     if output_list and len(output_list) > 0:
         for output in output_list:
-            if output and 'text' in output and ("<@" + BOT_ID + ">") in output['text']:
+            if output and 'text' in output and (
+                    "<@" + BOT_ID + ">") in output['text']:
                 # return text after the @ mention, whitespace removed
                 text = output['text'].split(("<@" + BOT_ID + ">"))
                 if text[0].strip().lower() == "man":
-                    return text[0].strip().lower(), output['channel'], output['user']
-                return text[1].strip().lower(), output['channel'], output['user']
+                    return text[0].strip().lower(
+                    ), output['channel'], output['user']
+                return text[1].strip().lower(
+                ), output['channel'], output['user']
     return None, None, None
+
 
 def get_event_list():
     # Check next week
     now = dt.utcnow()
-    now = now.isoformat() + 'Z' # 'Z' indicates UTC time
+    now = now.isoformat() + 'Z'  # 'Z' indicates UTC time
     eventsResult = service.events().list(
         calendarId=CAL_ID, timeMin=now, singleEvents=True,
         orderBy='startTime').execute()
     return eventsResult.get('items', [])
+
 
 def get_todays_support_name():
     """
@@ -83,11 +101,15 @@ def get_todays_support_name():
             desc = event['summary']
             # If the event matches, return the first word of summary which is name
             if "Atmosphere Support" in desc:
-                date = dt.strptime(event['start'].get('dateTime', event['start'].get('date')), "%Y-%m-%d")
+                date = dt.strptime(
+                    event['start'].get('dateTime', event['start'].get('date')),
+                    "%Y-%m-%d")
                 now = dt.now()
                 if date == now:
-                    return "Today's support person is %s." % ("<@" + desc.split()[0] + ">")
+                    return "Today's support person is %s." % (
+                        "<@" + desc.split()[0] + ">")
     return "No one is on support today."
+
 
 def get_next_day(name):
     """
@@ -105,10 +127,13 @@ def get_next_day(name):
         for event in events:
             desc = event['summary']
             if name.lower() in desc.lower() and "Atmosphere Support" in desc:
-                date = dt.strptime(event['start'].get('dateTime', event['start'].get('date')), "%Y-%m-%d")
+                date = dt.strptime(
+                    event['start'].get('dateTime', event['start'].get('date')),
+                    "%Y-%m-%d")
                 # Return day of week as full string
                 return date.strftime("%A") + " " + date.strftime("%Y-%m-%d")
     return "not on the calendar"
+
 
 def get_event(name):
     """
@@ -129,6 +154,7 @@ def get_event(name):
                 return event
     return None
 
+
 def next_seven_days():
     """
         Get a list of users covering support in the next 7 days
@@ -148,11 +174,15 @@ def next_seven_days():
             desc = event['summary']
             if "Atmosphere Support" in desc and num_days < 7:
                 num_days += 1
-                date = dt.strptime(event['start'].get('dateTime', event['start'].get('date')), "%Y-%m-%d")
-                date = "%-9s %s" % (date.strftime("%A"), date.strftime("%Y-%m-%d"))
+                date = dt.strptime(
+                    event['start'].get('dateTime', event['start'].get('date')),
+                    "%Y-%m-%d")
+                date = "%-9s %s" % (date.strftime("%A"),
+                                    date.strftime("%Y-%m-%d"))
                 name = desc.split()[0]
                 result += "The support person for `%s` is %s\n" % (date, name)
     return result
+
 
 def fancy_who(info):
     logging.info("Handling fancy who request: %s." % info)
@@ -169,10 +199,14 @@ def fancy_who(info):
             desc = event['summary']
             if "Atmosphere Support" in desc and num_days < 7:
                 num_days += 1
-                date = dt.strptime(event['start'].get('dateTime', event['start'].get('date')), "%Y-%m-%d")
-                date = "%s %s" % (date.strftime("%A"), date.strftime("%Y-%m-%d"))
+                date = dt.strptime(
+                    event['start'].get('dateTime', event['start'].get('date')),
+                    "%Y-%m-%d")
+                date = "%s %s" % (date.strftime("%A"),
+                                  date.strftime("%Y-%m-%d"))
                 name = desc.split()[0]
-                week.append("The support person for `%s` is %s\n" % (date, name))
+                week.append(
+                    "The support person for `%s` is %s\n" % (date, name))
         if "today" in info: return week[0]
         if "tomorrow" in info: return week[1]
         else:
@@ -188,10 +222,13 @@ def swap(user, user_id):
         Returns:
             String to notify user that swap is initiated
     """
-    with open("%s/support-bot-swap" % dirname(realpath(__file__)), "w") as file:
+    with open("%s/support-bot-swap" % dirname(realpath(__file__)),
+              "w") as file:
         file.write(user + "\n")
         file.write(user_id + "\n")
-    return "Awaiting confirmation from %s to swap with %s." % ("<@" + user_id + ">", "<@" + user + ">")
+    return "Awaiting confirmation from %s to swap with %s." % (
+        "<@" + user_id + ">", "<@" + user + ">")
+
 
 def confirm_swap(user):
     """
@@ -206,19 +243,25 @@ def confirm_swap(user):
         user_two_id = file.readline().strip()
         file.close()
 
-        logging.info("Finished reading users from swap file: %s and %s" % (user_two_id, user_one_id))
-        response = "You cannot confirm the pending swap between %s and %s" % ("<@" + user_one_id + ">", "<@" + get_user_name(slack_client, user_two_id) + ">")
+        logging.info("Finished reading users from swap file: %s and %s" %
+                     (user_two_id, user_one_id))
+        response = "You cannot confirm the pending swap between %s and %s" % (
+            "<@" + user_one_id + ">",
+            "<@" + get_user_name(slack_client, user_two_id) + ">")
 
         # If user sending the confirmation is the second user in swap request, swap confirmed
         if user == user_two_id:
-            logging.info("Second user, %s, confirmed the swap with %s" % (user_two_id, user_one_id))
-            response = "Swap with %s is confirmed." % ("<@" + user_one_id + ">")
+            logging.info("Second user, %s, confirmed the swap with %s" %
+                         (user_two_id, user_one_id))
+            response = "Swap with %s is confirmed." % (
+                "<@" + user_one_id + ">")
             perform_swap(user_one_id, user_two_id)
     except IOError:
         logging.info("No pending swap requests (file not found)")
         response = "No pending swap requests."
 
     return response
+
 
 def deny_swap():
     """
@@ -235,6 +278,7 @@ def deny_swap():
         response = "No open swap request to decline."
     logging.info("Deleted swap file after denying swap")
     return response
+
 
 def perform_swap(user_one, user_two):
     """
@@ -253,12 +297,17 @@ def perform_swap(user_one, user_two):
     user_two_event['summary'] = temp_summary
 
     # Update both events
-    service.events().update(calendarId=CAL_ID, eventId=user_one_event['id'], body=user_one_event).execute()
-    service.events().update(calendarId=CAL_ID, eventId=user_two_event['id'], body=user_two_event).execute()
+    service.events().update(
+        calendarId=CAL_ID, eventId=user_one_event['id'],
+        body=user_one_event).execute()
+    service.events().update(
+        calendarId=CAL_ID, eventId=user_two_event['id'],
+        body=user_two_event).execute()
 
     # Remove swap file
     remove("%s/support-bot-swap" % dirname(realpath(__file__)))
     logging.info("Deleted swap file after performing swap")
+
 
 def find_when(name, user):
     """
@@ -269,12 +318,20 @@ def find_when(name, user):
         If no username is specified after 'when', find it based off asking user's ID.
     """
     if name[0] != "when": response = "Command is not 'when'"
-    elif len(name) <= 1:  response = "The next support day for %s is `%s`." % (("<@" + user + ">"), get_next_day(get_user_name(slack_client, user)))
-    else: # User is asking about a different user's next day
+    elif len(name) <= 1:
+        response = "The next support day for %s is `%s`." % (
+            ("<@" + user + ">"), get_next_day(
+                get_user_name(slack_client, user)))
+    else:  # User is asking about a different user's next day
         user_id = get_user_id(slack_client, name[1])
-        if user_id: response = "The next support day for %s is `%s`." % (("<@" + user_id + ">"), get_next_day(name[1]))
-        else:       response = "User %s does not seem to exist in this team." % (name[1])
+        if user_id:
+            response = "The next support day for %s is `%s`." % (
+                ("<@" + user_id + ">"), get_next_day(name[1]))
+        else:
+            response = "User %s does not seem to exist in this team." % (
+                name[1])
     return response
+
 
 def get_user_id(slack_client, name):
     """
@@ -289,6 +346,7 @@ def get_user_id(slack_client, name):
             return user.get('id')
     return None
 
+
 def get_user_name(slack_client, id):
     """
         Gets valid username from user id.
@@ -301,6 +359,7 @@ def get_user_name(slack_client, id):
         if 'id' in user and user.get('id') == id:
             return user.get('name')
     return None
+
 
 def get_credentials():
     """
@@ -317,24 +376,26 @@ def get_credentials():
     store = Storage(credential_path)
     credentials = store.get()
     if not credentials or credentials.invalid:
-        flow = client.flow_from_clientsecrets(GOOGLE_APP_SECRET_PATH,
-		'https://www.googleapis.com/auth/calendar')
+        flow = client.flow_from_clientsecrets(
+            GOOGLE_APP_SECRET_PATH, 'https://www.googleapis.com/auth/calendar')
         flow.user_agent = 'Cyverse Slack Supurt But'
         if flags:
             credentials = tools.run_flow(flow, store, flags)
-        else: # Needed only for compatibility with Python 2.6
+        else:  # Needed only for compatibility with Python 2.6
             credentials = tools.run(flow, store)
         print('Storing credentials to ' + GOOGLE_APP_OAUTH_SECRET_PATH)
     return credentials
+
 
 # constants
 CAL_ID = environ.get("CAL_ID")
 BOT_NAME = environ.get("BOT_NAME")
 BOT_ID = None
 GOOGLE_APP_SECRET_PATH = environ.get("GOOGLE_APP_SECRET_PATH")
-GOOGLE_APP_OAUTH_SECRET_PATH = environ.get("GOOGLE_APP_OAUTH_SECRET_PATH", ".oauth_secret_json")
-BOT_USER_OAUTH_TOKEN=environ.get('BOT_USER_OAUTH_TOKEN')
-SUPPORT_CHANNEL=environ.get('SUPPORT_CHANNEL', 'general')
+GOOGLE_APP_OAUTH_SECRET_PATH = environ.get("GOOGLE_APP_OAUTH_SECRET_PATH",
+                                           ".oauth_secret_json")
+BOT_USER_OAUTH_TOKEN = environ.get('BOT_USER_OAUTH_TOKEN')
+SUPPORT_CHANNEL = environ.get('SUPPORT_CHANNEL', 'general')
 hello_words = {'hello', 'hi', 'howdy', 'hey', 'good morning'}
 slack_client = SlackClient(BOT_USER_OAUTH_TOKEN)
 user_list = None
@@ -359,11 +420,12 @@ help_msg = """Ask me:
 
 if __name__ == "__main__":
 
-    logging.basicConfig(filename="%s/cyverse-support-bot.log" % dirname(realpath(__file__)),
-                        filemode='a',
-                        format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
-                        datefmt='%H:%M:%S',
-                        level=logging.INFO)
+    logging.basicConfig(
+        filename="%s/cyverse-support-bot.log" % dirname(realpath(__file__)),
+        filemode='a',
+        format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+        datefmt='%H:%M:%S',
+        level=logging.INFO)
 
     # OAUTH
     credentials = get_credentials()
@@ -381,14 +443,11 @@ if __name__ == "__main__":
         trainer='chatterbot.trainers.ChatterBotCorpusTrainer',
         storage_adapter='chatterbot.storage.MongoDatabaseAdapter',
         database='chatterbot-database',
-        filters=[
-            'chatterbot.filters.RepetitiveResponseFilter'
-        ],
+        filters=['chatterbot.filters.RepetitiveResponseFilter'],
         logic_adapters=[
             "chatterbot.logic.BestMatch",
             "chatterbot.logic.MathematicalEvaluation"
-        ]
-    )
+        ])
     chatbot.train("chatterbot.corpus.english")
 
     # SLACK
@@ -396,7 +455,8 @@ if __name__ == "__main__":
     if slack_client.rtm_connect():
         while True:
             # wait to be mentioned
-            command, channel, user = parse_slack_output(slack_client.rtm_read())
+            command, channel, user = parse_slack_output(
+                slack_client.rtm_read())
             if command and channel:
                 handle_command(command, channel, user)
 
@@ -410,7 +470,11 @@ if __name__ == "__main__":
                     logging.info("No pending swap to delete")
 
                 handle_command("who", SUPPORT_CHANNEL, None)
-                slack_client.api_call("chat.postMessage", channel=SUPPORT_CHANNEL, text="Don't forget Intercom! :slightly_smiling_face:", as_user=True)
+                slack_client.api_call(
+                    "chat.postMessage",
+                    channel=SUPPORT_CHANNEL,
+                    text="Don't forget Intercom! :slightly_smiling_face:",
+                    as_user=True)
                 logging.info("Sent daily 8am message.")
             time.sleep(1)
     else:
