@@ -1,4 +1,5 @@
-import httplib2, time, oauth, datetime, sys, socket, logging, re
+import httplib2, time, oauth, sys, socket, logging, re
+from datetime import datetime as dt
 from slackclient import SlackClient
 from apiclient import discovery
 from oauth2client import client, tools
@@ -58,7 +59,7 @@ def parse_slack_output(slack_rtm_output):
 
 def get_event_list():
     # Check next week
-    now = datetime.datetime.utcnow()
+    now = dt.utcnow()
     now = now.isoformat() + 'Z' # 'Z' indicates UTC time
     eventsResult = service.events().list(
         calendarId=CAL_ID, timeMin=now, singleEvents=True,
@@ -82,8 +83,8 @@ def get_todays_support_name():
             desc = event['summary']
             # If the event matches, return the first word of summary which is name
             if "Atmosphere Support" in desc:
-                date = datetime.datetime.strptime(event['start'].get('dateTime', event['start'].get('date')), "%Y-%m-%d")
-                now = datetime.datetime.now()
+                date = dt.strptime(event['start'].get('dateTime', event['start'].get('date')), "%Y-%m-%d")
+                now = dt.now()
                 if date == now:
                     return "Today's support person is %s." % ("<@" + desc.split()[0] + ">")
     return "No one is on support today."
@@ -104,7 +105,7 @@ def get_next_day(name):
         for event in events:
             desc = event['summary']
             if name.lower() in desc.lower() and "Atmosphere Support" in desc:
-                date = datetime.datetime.strptime(event['start'].get('dateTime', event['start'].get('date')), "%Y-%m-%d")
+                date = dt.strptime(event['start'].get('dateTime', event['start'].get('date')), "%Y-%m-%d")
                 # Return day of week as full string
                 return date.strftime("%A") + " " + date.strftime("%Y-%m-%d")
     return "not on the calendar"
@@ -147,7 +148,7 @@ def next_seven_days():
             desc = event['summary']
             if "Atmosphere Support" in desc and num_days < 7:
                 num_days += 1
-                date = datetime.datetime.strptime(event['start'].get('dateTime', event['start'].get('date')), "%Y-%m-%d")
+                date = dt.strptime(event['start'].get('dateTime', event['start'].get('date')), "%Y-%m-%d")
                 date = "%-9s %s" % (date.strftime("%A"), date.strftime("%Y-%m-%d"))
                 name = desc.split()[0]
                 result += "The support person for `%s` is %s\n" % (date, name)
@@ -168,7 +169,7 @@ def fancy_who(info):
             desc = event['summary']
             if "Atmosphere Support" in desc and num_days < 7:
                 num_days += 1
-                date = datetime.datetime.strptime(event['start'].get('dateTime', event['start'].get('date')), "%Y-%m-%d")
+                date = dt.strptime(event['start'].get('dateTime', event['start'].get('date')), "%Y-%m-%d")
                 date = "%s %s" % (date.strftime("%A"), date.strftime("%Y-%m-%d"))
                 name = desc.split()[0]
                 week.append("The support person for `%s` is %s\n" % (date, name))
