@@ -108,7 +108,7 @@ def get_todays_support_name():
                 if date == now:
                     return "Today's support person is %s." % (
                         "<@" + desc.split()[0] + ">")
-    return "No one is on support today."
+    return "<!here> no one is on support today."
 
 
 def get_next_day(name):
