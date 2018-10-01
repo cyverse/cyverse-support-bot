@@ -103,8 +103,8 @@ def get_todays_support_name():
             if "Atmosphere Support" in desc:
                 date = dt.strptime(
                     event['start'].get('dateTime', event['start'].get('date')),
-                    "%Y-%m-%d")
-                now = dt.now()
+                    "%Y-%m-%d").date()
+                now = dt.now().date()
                 if date == now:
                     return "Today's support person is %s." % (
                         "<@" + desc.split()[0] + ">")
