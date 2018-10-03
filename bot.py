@@ -52,13 +52,14 @@ def handle_command(command, channel, user):
         "chat.postMessage", channel=channel, text=response, as_user=True)
 
 
-def parse_slack_output(slack_rtm_output):
+def read_and_respond():
     """
-        The Slack Real Time Messaging API is an events firehose.
-        this parsing function returns None unless a message is
-        directed at the Bot, based on its ID.
+        The Slack Real Time Messaging API is an events firehose. This parsing
+        function checks if a message is directed at the bot and then extracts
+        the specific command from the message
     """
-    output_list = slack_rtm_output
+    output_list = slack_client.rtm_read()
+    command, channel, user = None, None, None
 
     if output_list and len(output_list) > 0:
         for output in output_list:
@@ -66,12 +67,38 @@ def parse_slack_output(slack_rtm_output):
                     "<@" + BOT_ID + ">") in output['text']:
                 # return text after the @ mention, whitespace removed
                 text = output['text'].split(("<@" + BOT_ID + ">"))
+                # allow users to say 'man @atmosupportbot' like CLI man
+                channel, user = output['channel'], output['user']
                 if text[0].strip().lower() == "man":
-                    return text[0].strip().lower(
-                    ), output['channel'], output['user']
-                return text[1].strip().lower(
-                ), output['channel'], output['user']
-    return None, None, None
+                    command =  text[0].strip().lower()
+                else:
+                    command = text[1].strip().lower()
+    if command and channel:
+        handle_command(command, channel, user)
+
+
+def morning_message():
+    """
+        Send a message to the channel announcing today's support person if it is
+        8 am
+    """
+    cur_time = time.localtime()
+    if cur_time.tm_wday < 5 and cur_time.tm_hour == 8 and cur_time.tm_min == 0 and cur_time.tm_sec == 0:
+        try:
+            remove("%s/support-bot-swap" % dirname(realpath(__file__)))
+            logging.info("Deleted pending swap")
+        except OSError:
+            logging.info("No pending swap to delete")
+
+
+        handle_command("who", SUPPORT_CHANNEL, None)
+        slack_client.api_call(
+            "chat.postMessage",
+            channel=SUPPORT_CHANNEL,
+            text="Don't forget Intercom! :slightly_smiling_face:",
+            as_user=True)
+        logging.info("Sent daily 8am message.")
+
 
 
 def get_event_list():
@@ -455,27 +482,8 @@ if __name__ == "__main__":
     if slack_client.rtm_connect():
         while True:
             # wait to be mentioned
-            command, channel, user = parse_slack_output(
-                slack_client.rtm_read())
-            if command and channel:
-                handle_command(command, channel, user)
-
-            cur_time = time.localtime()
-            # or print today's support name if it is a weekday at 8am
-            if cur_time.tm_wday < 5 and cur_time.tm_hour == 8 and cur_time.tm_min == 0 and cur_time.tm_sec == 0:
-                try:
-                    remove("%s/support-bot-swap" % dirname(realpath(__file__)))
-                    logging.info("Deleted pending swap")
-                except OSError:
-                    logging.info("No pending swap to delete")
-
-                handle_command("who", SUPPORT_CHANNEL, None)
-                slack_client.api_call(
-                    "chat.postMessage",
-                    channel=SUPPORT_CHANNEL,
-                    text="Don't forget Intercom! :slightly_smiling_face:",
-                    as_user=True)
-                logging.info("Sent daily 8am message.")
+            read_and_respond()
+            morning_message()
             time.sleep(1)
     else:
         print("Connection failed. Invalid Slack token or bot ID?")
