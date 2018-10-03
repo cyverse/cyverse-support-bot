@@ -84,13 +84,6 @@ def morning_message():
     """
     cur_time = time.localtime()
     if cur_time.tm_wday < 5 and cur_time.tm_hour == 8 and cur_time.tm_min == 0 and cur_time.tm_sec == 0:
-        try:
-            remove("%s/support-bot-swap" % dirname(realpath(__file__)))
-            logging.info("Deleted pending swap")
-        except OSError:
-            logging.info("No pending swap to delete")
-
-
         handle_command("who", SUPPORT_CHANNEL, None)
         slack_client.api_call(
             "chat.postMessage",
@@ -242,100 +235,6 @@ def fancy_who(info):
     return "Sorry, I do not have an answer to this question."
 
 
-def swap(user, user_id):
-    """
-        Initial step of swapping days. Creates file with both user ID's to swap
-
-        Returns:
-            String to notify user that swap is initiated
-    """
-    with open("%s/support-bot-swap" % dirname(realpath(__file__)),
-              "w") as file:
-        file.write(user + "\n")
-        file.write(user_id + "\n")
-    return "Awaiting confirmation from %s to swap with %s." % (
-        "<@" + user_id + ">", "<@" + user + ">")
-
-
-def confirm_swap(user):
-    """
-        Allow a swap if there is one pending and commanding user is part of the swap
-
-        Returns:
-            String to notify user of swap state
-    """
-    try:
-        file = open("%s/support-bot-swap" % dirname(realpath(__file__)), "r")
-        user_one_id = file.readline().strip()
-        user_two_id = file.readline().strip()
-        file.close()
-
-        logging.info("Finished reading users from swap file: %s and %s" %
-                     (user_two_id, user_one_id))
-        response = "You cannot confirm the pending swap between %s and %s" % (
-            "<@" + user_one_id + ">",
-            "<@" + get_user_name(slack_client, user_two_id) + ">")
-
-        # If user sending the confirmation is the second user in swap request, swap confirmed
-        if user == user_two_id:
-            logging.info("Second user, %s, confirmed the swap with %s" %
-                         (user_two_id, user_one_id))
-            response = "Swap with %s is confirmed." % (
-                "<@" + user_one_id + ">")
-            perform_swap(user_one_id, user_two_id)
-    except IOError:
-        logging.info("No pending swap requests (file not found)")
-        response = "No pending swap requests."
-
-    return response
-
-
-def deny_swap():
-    """
-        Deny the swap and delete the file
-
-        Returns:
-            String to notify user of swap state
-    """
-    response = "Swap declined by user."
-    try:
-        remove("%s/support-bot-swap" % dirname(realpath(__file__)))
-    except OSError:
-        logging.info("File does not exist.")
-        response = "No open swap request to decline."
-    logging.info("Deleted swap file after denying swap")
-    return response
-
-
-def perform_swap(user_one, user_two):
-    """
-        After swap is confirmed, perform the swap by editing the Google Calendar
-
-        Returns:
-            None
-    """
-    # Get upcoming support days for each user
-    user_one_event = get_event(get_user_name(slack_client, user_one))
-    user_two_event = get_event(get_user_name(slack_client, user_two))
-
-    # Swap the descriptions of the two events
-    temp_summary = user_one_event['summary']
-    user_one_event['summary'] = user_two_event['summary']
-    user_two_event['summary'] = temp_summary
-
-    # Update both events
-    service.events().update(
-        calendarId=CAL_ID, eventId=user_one_event['id'],
-        body=user_one_event).execute()
-    service.events().update(
-        calendarId=CAL_ID, eventId=user_two_event['id'],
-        body=user_two_event).execute()
-
-    # Remove swap file
-    remove("%s/support-bot-swap" % dirname(realpath(__file__)))
-    logging.info("Deleted swap file after performing swap")
-
-
 def find_when(name, user):
     """
         Finds the user's next support day.
@@ -439,9 +338,6 @@ help_msg = """Ask me:
     `where` I am hosted
     `how` you can support users
     `all` support assignments for the next 7 days
-    [BETA disabled] ~`swap <username>` initiate a swap with another user that must be approved before 8am tomorrow~
-    [BETA disabled] ~`deny`/`decline` if someone tried to swap with you, decline that swap~
-    [BETA disabled] ~`confirm`/`accept` if someone tried to swap with you, accept that swap~
     `man`/`help` to see this message
     If you ask me something other than something here, I use github.com/gunthercox/ChatterBot to come up with a clever response"""
 
