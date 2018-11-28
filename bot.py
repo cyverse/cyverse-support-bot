@@ -15,7 +15,7 @@ except ImportError:
     flags = None
 
 
-def handle_command(command, channel, user):
+def handle_command(command, channel, user, thread_ts=None):
     """
         Manages the commands 'who', 'when', 'why', 'where', and 'how'.
         Also responds to a list of hello_words
@@ -49,7 +49,7 @@ def handle_command(command, channel, user):
         response = chatbot.get_response(command).text
     logging.info("Sending response to Slack: %s" % response)
     slack_client.api_call(
-        "chat.postMessage", channel=channel, text=response, as_user=True)
+        "chat.postMessage", channel=channel, text=response, as_user=True, thread_ts=thread_ts)
 
 
 def read_and_respond():
@@ -65,6 +65,9 @@ def read_and_respond():
         for output in output_list:
             if output and 'text' in output and (
                     "<@" + BOT_ID + ">") in output['text']:
+                # check if message is in a thread
+                if 'thread_ts' in output:
+                    thread_ts = output['thread_ts']
                 # return text after the @ mention, whitespace removed
                 text = output['text'].split(("<@" + BOT_ID + ">"))
                 # allow users to say 'man @atmosupportbot' like CLI man
@@ -74,7 +77,7 @@ def read_and_respond():
                 else:
                     command = text[1].strip().lower()
     if command and channel:
-        handle_command(command, channel, user)
+        handle_command(command, channel, user, thread_ts=thread_ts)
 
 
 def morning_message():
