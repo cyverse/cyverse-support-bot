@@ -48,8 +48,12 @@ def handle_command(command, channel, user, thread_ts=None):
     else:
         response = chatbot.get_response(command).text
     logging.info("Sending response to Slack: %s" % response)
-    slack_client.api_call(
-        "chat.postMessage", channel=channel, text=response, as_user=True, thread_ts=thread_ts)
+    if thread_ts:
+        slack_client.api_call(
+            "chat.postMessage", channel=channel, text=response, as_user=True, thread_ts=thread_ts)
+    else:
+        slack_client.api_call(
+            "chat.postMessage", channel=channel, text=response, as_user=True)
 
 
 def read_and_respond():
@@ -59,7 +63,7 @@ def read_and_respond():
         the specific command from the message
     """
     output_list = slack_client.rtm_read()
-    command, channel, user = None, None, None
+    command, channel, user, thread_ts = None, None, None, None
 
     if output_list and len(output_list) > 0:
         for output in output_list:
