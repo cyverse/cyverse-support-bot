@@ -288,8 +288,7 @@ help_msg = """Ask me:
     `man`/`help` to see this message
     If you ask me something other than something here, I use github.com/gunthercox/ChatterBot to come up with a clever response"""
 
-if __name__ == "__main__":
-
+def main():
     logging.basicConfig(
         filename="%s/cyverse-support-bot.log" % dirname(realpath(__file__)),
         filemode='a',
@@ -330,3 +329,6 @@ if __name__ == "__main__":
             time.sleep(1)
     else:
         print("Connection failed. Invalid Slack token or bot ID?")
+
+if __name__ == "__main__":
+    main()
