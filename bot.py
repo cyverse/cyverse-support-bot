@@ -165,25 +165,6 @@ def get_next_day(name):
     return "not on the calendar"
 
 
-def get_event(name):
-    """
-        Search upcoming events, looking for the specified name.
-
-        Returns:
-            Google Calendar Event ID
-    """
-    logging.info("Getting event ID from calendar for user %s" % name)
-
-    events = get_event_list()
-
-    # Search through events
-    for event in events:
-        desc = event['summary']
-        if name.lower() in desc.lower() and "Atmosphere Support" in desc:
-            return event
-    return None
-
-
 def next_seven_days():
     """
         Get a list of users covering support in the next 7 days
