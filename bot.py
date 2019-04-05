@@ -125,7 +125,7 @@ class AtmoSupportBot:
                     if 'thread_ts' in output:
                         thread_ts = output['thread_ts']
                     # return text after the @ mention, whitespace removed
-                    text = output['text'].strip().lower().split(("<@" + BOT_ID + ">"))
+                    text = [t.strip().lower() for t in output['text'].split("<@" + self.BOT_ID + ">")]
                     # allow users to say 'man @atmosupportbot' like CLI man
                     channel, user = output['channel'], output['user']
                     command = text[0] if text[0] == "man" else text[1]
