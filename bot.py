@@ -211,13 +211,10 @@ class AtmoSupportBot:
 
         # Remove non-alphanumeric characters
         info = re.sub(r'\W+', '', info)
-        week = []
-
+        events = filter(lambda e: "Atmosphere Support" in e['summary'], self.get_event_list())[:7]
         week = ["The support person for `{}` is {}\n".format(
-                    dt.strptime(event['start'].get('date'), "%Y-%m-%d").strftime("%A %Y-%m-%d"),
-                    event['summary'].split()[0]
-                )
-                for event in filter(lambda e: "Atmosphere Support" in e['summary'], self.get_event_list())[:7]]
+                dt.strptime(event['start'].get('date'), "%Y-%m-%d").strftime("%A %Y-%m-%d"),
+                event['summary'].split()[0]) for event in events]
         result = [week[0]] if 'today' in info else ([week[1]] if 'tomorrow' in info else filter(lambda day: info in day.lower(), week))
         return ''.join(result) if result else "Sorry, I do not have an answer to this question."
 
