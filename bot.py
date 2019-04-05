@@ -204,18 +204,10 @@ def fancy_who(info):
                 "%Y-%m-%d")
             date = "%s %s" % (date.strftime("%A"),
                               date.strftime("%Y-%m-%d"))
-            name = desc.split()[0]
             week.append(
-                "The support person for `%s` is %s\n" % (date, name))
-    if "today" in info:
-        return week[0]
-    if "tomorrow" in info:
-        return week[1]
-    else:
-        for day in week:
-            if info in day.lower():
-                return day
-    return "Sorry, I do not have an answer to this question."
+                "The support person for `%s` is %s\n" % (date, desc.split()[0]))
+    result = [week[0]] if 'today' in info else ([week[1]] if 'tomorrow' in info else filter(lambda day: info in day.lower(), week))
+    return ''.join(result) if result else "Sorry, I do not have an answer to this question."
 
 
 def find_when(name, user):
