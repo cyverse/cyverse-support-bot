@@ -269,13 +269,9 @@ class AtmoSupportBot:
         store = Storage(credential_path)
         credentials = store.get()
         if not credentials or credentials.invalid:
-            flow = client.flow_from_clientsecrets(
-                self.GOOGLE_APP_SECRET_PATH, 'https://www.googleapis.com/auth/calendar')
+            flow = client.flow_from_clientsecrets(self.GOOGLE_APP_SECRET_PATH, 'https://www.googleapis.com/auth/calendar')
             flow.user_agent = 'Cyverse Slack Supurt But'
-            if flags:
-                credentials = tools.run_flow(flow, store, flags)
-            else:  # Needed only for compatibility with Python 2.6
-                credentials = tools.run(flow, store)
+            credentials = tools.run_flow(flow, store, flags) if flags else tools.run(flow, store)
             print('Storing credentials to ' + self.GOOGLE_APP_OAUTH_SECRET_PATH)
         return credentials
 
