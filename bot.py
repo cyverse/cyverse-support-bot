@@ -188,7 +188,6 @@ class AtmoSupportBot:
                 Day string ("Monday", etc.)
         """
         logging.info("Getting day from calendar for user %s" % name)
-
         days = filter(lambda e: name.lower() in e['summary'].lower() and "Atmosphere Support" in e['summary'], self.get_event_list())
         return dt.strptime(days[0].get('date'), "%Y-%m-%d").strftime("%A %Y-%m-%d") if days else "not on the calendar"
 
