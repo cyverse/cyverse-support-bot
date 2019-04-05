@@ -134,9 +134,12 @@ def get_todays_support_name():
                 now = dt.now().date()
                 if date == now:
                     name = desc.split('-')[0].strip()
-                    user = filter(lambda u: (u['real_name'] == name or u['profile']['display_name']) if 'real_name' in u.keys() else False, user_list)
+                    try:
+                        user = filter(lambda u: (u['real_name'] == name or u['profile']['display_name']) if 'real_name' in u.keys() else False, user_list)[0]['id']
+                    except:
+                        user = name
                     return "Today's support person is %s." % (
-                        "<@" + user['id'] + ">")
+                        "<@" + user + ">")
     return "<!here> no one is on support today."
 
 
