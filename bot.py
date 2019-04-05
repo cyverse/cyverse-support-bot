@@ -205,12 +205,12 @@ class AtmoSupportBot:
         num_days = 0
 
         for event in self.get_event_list():
-            desc = event['summary']
-            if "Atmosphere Support" in desc and num_days < 7:
+            if "Atmosphere Support" in event['summary'] and num_days < 7:
                 num_days += 1
-                date = dt.strptime(event['start'].get('date'), "%Y-%m-%d").strftime("%A %Y-%m-%d")
-                name = desc.split('-')[0].strip()
-                result += "The support person for `{}` is {}\n".format(date, name)
+                result += "The support person for `{}` is {}\n".format(
+                    dt.strptime(event['start'].get('date'), "%Y-%m-%d").strftime("%A %Y-%m-%d"), # date
+                    event['summary'].split('-')[0].strip() # name
+                )
         return result
 
 
@@ -223,12 +223,11 @@ class AtmoSupportBot:
         num_days = 0
         week = []
         for event in self.get_event_list():
-            desc = event['summary']
-            if "Atmosphere Support" in desc and num_days < 7:
+            if "Atmosphere Support" in event['summary'] and num_days < 7:
                 num_days += 1
                 date = dt.strptime(event['start'].get('date'), "%Y-%m-%d").strftime("%A %Y-%m-%d")
                 week.append(
-                    "The support person for `%s` is %s\n" % (date, desc.split()[0]))
+                    "The support person for `%s` is %s\n" % (date, event['summary'].split()[0]))
         result = [week[0]] if 'today' in info else ([week[1]] if 'tomorrow' in info else filter(lambda day: info in day.lower(), week))
         return ''.join(result) if result else "Sorry, I do not have an answer to this question."
 
