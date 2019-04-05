@@ -228,20 +228,14 @@ class AtmoSupportBot:
             If no username is specified after 'when', find it based off asking user's ID.
         """
         if name[0] != "when":
-            response = "Command is not 'when'"
-        elif len(name) <= 1:
-            response = "The next support day for %s is `%s`." % (
-                ("<@" + user + ">"), self.get_next_day(
-                    self.get_user_name_or_id(user)))
-        else:  # User is asking about a different user's next day
-            user_id = self.get_user_name_or_id(name[1])
-            if user_id:
-                response = "The next support day for %s is `%s`." % (
-                    ("<@" + user_id + ">"), self.get_next_day(name[1]))
-            else:
-                response = "User %s does not seem to exist in this team." % (
-                    name[1])
-        return response
+            return "Command is not 'when'"
+
+        user_id = user if len(name) <= 1 else self.get_user_name_or_id(name[1])
+        user_name = self.get_user_name_or_id(user) if len(name) <= 1 else name[1]
+        return "The next support day for {} is `{}`.".format(
+            "<@" + user_id + ">",
+            self.get_next_day(user_name)
+        ) if user_id else "User {} does not seem to exist in this team.".format(name[1])
 
 
     def get_user_name_or_id(self, name_or_id):
