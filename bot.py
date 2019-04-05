@@ -101,10 +101,10 @@ class AtmoSupportBot:
             response = self.chatbot.get_response(command).text
         logging.info("Sending response to Slack: %s" % response)
         if thread_ts:
-            slack_client.api_call(
+            self.slack_client.api_call(
                 "chat.postMessage", channel=channel, text=response, as_user=True, thread_ts=thread_ts)
         else:
-            slack_client.api_call(
+            self.slack_client.api_call(
                 "chat.postMessage", channel=channel, text=response, as_user=True)
 
 
