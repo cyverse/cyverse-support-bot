@@ -125,9 +125,7 @@ def get_todays_support_name():
         desc = event['summary']
         # If the event matches, return the first word of summary which is name
         if "Atmosphere Support" in desc:
-            date = dt.strptime(
-                event['start'].get('dateTime', event['start'].get('date')),
-                "%Y-%m-%d").date()
+            date = dt.strptime(event['start'].get('date'), "%Y-%m-%d").date()
             now = dt.now().date()
             if date == now:
                 name = desc.split('-')[0].strip()
@@ -153,11 +151,7 @@ def get_next_day(name):
     for event in get_event_list():
         desc = event['summary']
         if name.lower() in desc.lower() and "Atmosphere Support" in desc:
-            date = dt.strptime(
-                event['start'].get('dateTime', event['start'].get('date')),
-                "%Y-%m-%d")
-            # Return day of week as full string
-            return date.strftime("%A") + " " + date.strftime("%Y-%m-%d")
+            return dt.strptime(event['start'].get('date'), "%Y-%m-%d").strftime("%A %Y-%m-%d")
     return "not on the calendar"
 
 
@@ -177,13 +171,9 @@ def next_seven_days():
         desc = event['summary']
         if "Atmosphere Support" in desc and num_days < 7:
             num_days += 1
-            date = dt.strptime(
-                event['start'].get('dateTime', event['start'].get('date')),
-                "%Y-%m-%d")
-            date = "%-9s %s" % (date.strftime("%A"),
-                                date.strftime("%Y-%m-%d"))
+            date = dt.strptime(event['start'].get('date'), "%Y-%m-%d").strftime("%A %Y-%m-%d")
             name = desc.split('-')[0].strip()
-            result += "The support person for `%s` is %s\n" % (date, name)
+            result += "The support person for `{}` is {}\n".format(date, name)
     return result
 
 
@@ -199,11 +189,7 @@ def fancy_who(info):
         desc = event['summary']
         if "Atmosphere Support" in desc and num_days < 7:
             num_days += 1
-            date = dt.strptime(
-                event['start'].get('dateTime', event['start'].get('date')),
-                "%Y-%m-%d")
-            date = "%s %s" % (date.strftime("%A"),
-                              date.strftime("%Y-%m-%d"))
+            date = dt.strptime(event['start'].get('date'), "%Y-%m-%d").strftime("%A %Y-%m-%d")
             week.append(
                 "The support person for `%s` is %s\n" % (date, desc.split()[0]))
     result = [week[0]] if 'today' in info else ([week[1]] if 'tomorrow' in info else filter(lambda day: info in day.lower(), week))
