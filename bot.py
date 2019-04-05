@@ -123,23 +123,22 @@ def get_todays_support_name():
     events = get_event_list()
 
     # Search through events looking for 'Atmosphere Support'
-    if events:
-        for event in events:
-            desc = event['summary']
-            # If the event matches, return the first word of summary which is name
-            if "Atmosphere Support" in desc:
-                date = dt.strptime(
-                    event['start'].get('dateTime', event['start'].get('date')),
-                    "%Y-%m-%d").date()
-                now = dt.now().date()
-                if date == now:
-                    name = desc.split('-')[0].strip()
-                    try:
-                        user = filter(lambda u: (u['real_name'] == name or u['profile']['display_name'] == name) if 'real_name' in u.keys() else False, user_list)[0]['id']
-                    except:
-                        user = name
-                    return "Today's support person is %s." % (
-                        "<@" + user + ">")
+    for event in events:
+        desc = event['summary']
+        # If the event matches, return the first word of summary which is name
+        if "Atmosphere Support" in desc:
+            date = dt.strptime(
+                event['start'].get('dateTime', event['start'].get('date')),
+                "%Y-%m-%d").date()
+            now = dt.now().date()
+            if date == now:
+                name = desc.split('-')[0].strip()
+                try:
+                    user = filter(lambda u: (u['real_name'] == name or u['profile']['display_name'] == name) if 'real_name' in u.keys() else False, user_list)[0]['id']
+                except:
+                    user = name
+                return "Today's support person is %s." % (
+                    "<@" + user + ">")
     return "<!here> no one is on support today."
 
 
@@ -155,15 +154,14 @@ def get_next_day(name):
     events = get_event_list()
 
     # Search through events
-    if events:
-        for event in events:
-            desc = event['summary']
-            if name.lower() in desc.lower() and "Atmosphere Support" in desc:
-                date = dt.strptime(
-                    event['start'].get('dateTime', event['start'].get('date')),
-                    "%Y-%m-%d")
-                # Return day of week as full string
-                return date.strftime("%A") + " " + date.strftime("%Y-%m-%d")
+    for event in events:
+        desc = event['summary']
+        if name.lower() in desc.lower() and "Atmosphere Support" in desc:
+            date = dt.strptime(
+                event['start'].get('dateTime', event['start'].get('date')),
+                "%Y-%m-%d")
+            # Return day of week as full string
+            return date.strftime("%A") + " " + date.strftime("%Y-%m-%d")
     return "not on the calendar"
 
 
@@ -179,11 +177,10 @@ def get_event(name):
     events = get_event_list()
 
     # Search through events
-    if events:
-        for event in events:
-            desc = event['summary']
-            if name.lower() in desc.lower() and "Atmosphere Support" in desc:
-                return event
+    for event in events:
+        desc = event['summary']
+        if name.lower() in desc.lower() and "Atmosphere Support" in desc:
+            return event
     return None
 
 
@@ -201,18 +198,17 @@ def next_seven_days():
     result = ""
     num_days = 0
 
-    if events:
-        for event in events:
-            desc = event['summary']
-            if "Atmosphere Support" in desc and num_days < 7:
-                num_days += 1
-                date = dt.strptime(
-                    event['start'].get('dateTime', event['start'].get('date')),
-                    "%Y-%m-%d")
-                date = "%-9s %s" % (date.strftime("%A"),
-                                    date.strftime("%Y-%m-%d"))
-                name = desc.split('-')[0].strip()
-                result += "The support person for `%s` is %s\n" % (date, name)
+    for event in events:
+        desc = event['summary']
+        if "Atmosphere Support" in desc and num_days < 7:
+            num_days += 1
+            date = dt.strptime(
+                event['start'].get('dateTime', event['start'].get('date')),
+                "%Y-%m-%d")
+            date = "%-9s %s" % (date.strftime("%A"),
+                                date.strftime("%Y-%m-%d"))
+            name = desc.split('-')[0].strip()
+            result += "The support person for `%s` is %s\n" % (date, name)
     return result
 
 
@@ -226,24 +222,26 @@ def fancy_who(info):
 
     num_days = 0
     week = []
-    if events:
-        for event in events:
-            desc = event['summary']
-            if "Atmosphere Support" in desc and num_days < 7:
-                num_days += 1
-                date = dt.strptime(
-                    event['start'].get('dateTime', event['start'].get('date')),
-                    "%Y-%m-%d")
-                date = "%s %s" % (date.strftime("%A"),
-                                  date.strftime("%Y-%m-%d"))
-                name = desc.split()[0]
-                week.append(
-                    "The support person for `%s` is %s\n" % (date, name))
-        if "today" in info: return week[0]
-        if "tomorrow" in info: return week[1]
-        else:
-            for day in week:
-                if info in day.lower(): return day
+    for event in events:
+        desc = event['summary']
+        if "Atmosphere Support" in desc and num_days < 7:
+            num_days += 1
+            date = dt.strptime(
+                event['start'].get('dateTime', event['start'].get('date')),
+                "%Y-%m-%d")
+            date = "%s %s" % (date.strftime("%A"),
+                              date.strftime("%Y-%m-%d"))
+            name = desc.split()[0]
+            week.append(
+                "The support person for `%s` is %s\n" % (date, name))
+    if "today" in info:
+        return week[0]
+    if "tomorrow" in info:
+        return week[1]
+    else:
+        for day in week:
+            if info in day.lower():
+                return day
     return "Sorry, I do not have an answer to this question."
 
 
