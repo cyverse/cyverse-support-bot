@@ -201,7 +201,7 @@ class AtmoSupportBot:
         """
         logging.info("Getting support persons for the next week")
         events = filter(lambda e: "Atmosphere Support" in e['summary'], self.get_event_list())[:7]
-        return '\n'.join(["The support person for `{}` is {}\n".format(
+        return '\n'.join(["The support person for `{}` is {}".format(
             dt.strptime(event['start'].get('date'), "%Y-%m-%d").strftime("%A %Y-%m-%d"),
             event['summary'].split('-')[0].strip()) for event in events])
 
