@@ -65,7 +65,7 @@ def read_and_respond():
     output_list = slack_client.rtm_read()
     command, channel, user, thread_ts = None, None, None, None
 
-    if output_list and len(output_list) > 0:
+    if output_list:
         for output in output_list:
             if output and 'text' in output and (
                     "<@" + BOT_ID + ">") in output['text']:
@@ -73,13 +73,10 @@ def read_and_respond():
                 if 'thread_ts' in output:
                     thread_ts = output['thread_ts']
                 # return text after the @ mention, whitespace removed
-                text = output['text'].split(("<@" + BOT_ID + ">"))
+                text = output['text'].strip().lower().split(("<@" + BOT_ID + ">"))
                 # allow users to say 'man @atmosupportbot' like CLI man
                 channel, user = output['channel'], output['user']
-                if text[0].strip().lower() == "man":
-                    command =  text[0].strip().lower()
-                else:
-                    command = text[1].strip().lower()
+                command = text[0] if text[0] == "man" else text[1]
     if command and channel:
         handle_command(command, channel, user, thread_ts=thread_ts)
 
