@@ -120,10 +120,8 @@ def get_todays_support_name():
     """
     logging.info("Getting name from calendar for today")
 
-    events = get_event_list()
-
     # Search through events looking for 'Atmosphere Support'
-    for event in events:
+    for event in get_event_list():
         desc = event['summary']
         # If the event matches, return the first word of summary which is name
         if "Atmosphere Support" in desc:
@@ -151,10 +149,8 @@ def get_next_day(name):
     """
     logging.info("Getting day from calendar for user %s" % name)
 
-    events = get_event_list()
-
     # Search through events
-    for event in events:
+    for event in get_event_list():
         desc = event['summary']
         if name.lower() in desc.lower() and "Atmosphere Support" in desc:
             date = dt.strptime(
@@ -174,12 +170,10 @@ def next_seven_days():
     """
     logging.info("Getting support persons for the next week")
 
-    events = get_event_list()
-
     result = ""
     num_days = 0
 
-    for event in events:
+    for event in get_event_list():
         desc = event['summary']
         if "Atmosphere Support" in desc and num_days < 7:
             num_days += 1
@@ -196,14 +190,12 @@ def next_seven_days():
 def fancy_who(info):
     logging.info("Handling fancy who request: %s." % info)
 
-    events = get_event_list()
-
     # Remove non-alphanumeric characters
     info = re.sub(r'\W+', '', info)
 
     num_days = 0
     week = []
-    for event in events:
+    for event in get_event_list():
         desc = event['summary']
         if "Atmosphere Support" in desc and num_days < 7:
             num_days += 1
