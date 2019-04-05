@@ -189,12 +189,8 @@ class AtmoSupportBot:
         """
         logging.info("Getting day from calendar for user %s" % name)
 
-        # Search through events
-        for event in self.get_event_list():
-            desc = event['summary']
-            if name.lower() in desc.lower() and "Atmosphere Support" in desc:
-                return dt.strptime(event['start'].get('date'), "%Y-%m-%d").strftime("%A %Y-%m-%d")
-        return "not on the calendar"
+        days = filter(lambda e: name.lower() in e['summary'].lower() and "Atmosphere Support" in e['summary'], self.get_event_list())
+        return dt.strptime(days[0].get('date'), "%Y-%m-%d").strftime("%A %Y-%m-%d") if days else "not on the calendar"
 
 
     def next_seven_days(self):
