@@ -34,7 +34,7 @@ def handle_command(command, channel, user, thread_ts=None):
     elif command.startswith("all"):
         response = next_seven_days()
     elif command.startswith("swap") and len(command.split()) > 1:
-        response = swap(user, get_user_id(slack_client, command.split()[1]))
+        response = swap(user, get_user_name_or_id(slack_client, command.split()[1]))
     elif command.startswith(("confirm", "accept")):
         response = confirm_swap(user)
     elif command.startswith(("decline", "deny")):
@@ -218,13 +218,14 @@ def find_when(name, user):
         If the first word is not 'when', then ignore.
         If no username is specified after 'when', find it based off asking user's ID.
     """
-    if name[0] != "when": response = "Command is not 'when'"
+    if name[0] != "when":
+        response = "Command is not 'when'"
     elif len(name) <= 1:
         response = "The next support day for %s is `%s`." % (
             ("<@" + user + ">"), get_next_day(
-                get_user_name(slack_client, user)))
+                get_user_name_or_id(slack_client, user)))
     else:  # User is asking about a different user's next day
-        user_id = get_user_id(slack_client, name[1])
+        user_id = get_user_name_or_id(slack_client, name[1])
         if user_id:
             response = "The next support day for %s is `%s`." % (
                 ("<@" + user_id + ">"), get_next_day(name[1]))
@@ -234,30 +235,18 @@ def find_when(name, user):
     return response
 
 
-def get_user_id(slack_client, name):
+def get_user_name_or_id(slack_client, name_or_id):
     """
-        Gets valid user id from username.
-
-        Returns:
-            User ID of bot.
-    """
-    logging.info("Getting id for Slack user %s" % name)
-    for user in user_list:
-        if 'name' in user and user.get('name') == name:
-            return user.get('id')
-    return None
-
-
-def get_user_name(slack_client, id):
-    """
-        Gets valid username from user id.
+        Gets valid username from ID or ID from username.
 
         Returns:
             Username.
     """
-    logging.info("Getting username for Slack id %s" % id)
+    logging.info("Getting username for Slack name/id %s" % name_or_id)
     for user in user_list:
-        if 'id' in user and user.get('id') == id:
+        if 'name' in user and user.get('name') == name_or_id:
+            return user.get('id')
+        if 'id' in user and user.get('id') == name_or_id:
             return user.get('name')
     return None
 
@@ -349,7 +338,7 @@ if __name__ == "__main__":
     chatbot.train("chatterbot.corpus.english")
 
     # SLACK
-    BOT_ID = get_user_id(slack_client, BOT_NAME)
+    BOT_ID = get_user_name_or_id(slack_client, BOT_NAME)
     if slack_client.rtm_connect():
         while True:
             # wait to be mentioned
