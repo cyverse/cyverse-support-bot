@@ -85,12 +85,6 @@ class AtmoSupportBot:
             response = self.find_when(command.split(), user)
         elif command.startswith("all"):
             response = self.next_seven_days()
-        elif command.startswith("swap") and len(command.split()) > 1:
-            response = self.swap(user, self.get_user_name_or_id(command.split()[1]))
-        elif command.startswith(("confirm", "accept")):
-            response = self.confirm_swap(user)
-        elif command.startswith(("decline", "deny")):
-            response = self.deny_swap()
         elif command.startswith(("help", "man")):
             response = self.help_msg
         elif command == "how":
