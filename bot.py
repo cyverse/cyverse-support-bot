@@ -133,8 +133,10 @@ def get_todays_support_name():
                     "%Y-%m-%d").date()
                 now = dt.now().date()
                 if date == now:
+                    name = desc.split('-')[0].strip()
+                    user = filter(lambda u: (u['real_name'] == name or u['profile']['display_name']) if 'real_name' in u.keys() else False, user_list)
                     return "Today's support person is %s." % (
-                        "<@" + desc.split()[0] + ">")
+                        "<@" + user['id'] + ">")
     return "<!here> no one is on support today."
 
 
@@ -206,7 +208,7 @@ def next_seven_days():
                     "%Y-%m-%d")
                 date = "%-9s %s" % (date.strftime("%A"),
                                     date.strftime("%Y-%m-%d"))
-                name = desc.split()[0]
+                name = desc.split('-')[0].strip()
                 result += "The support person for `%s` is %s\n" % (date, name)
     return result
 
