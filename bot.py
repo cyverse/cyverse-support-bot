@@ -200,18 +200,10 @@ class AtmoSupportBot:
                 String of support users
         """
         logging.info("Getting support persons for the next week")
-
-        result = ""
-        num_days = 0
-
-        for event in self.get_event_list():
-            if "Atmosphere Support" in event['summary'] and num_days < 7:
-                num_days += 1
-                result += "The support person for `{}` is {}\n".format(
-                    dt.strptime(event['start'].get('date'), "%Y-%m-%d").strftime("%A %Y-%m-%d"), # date
-                    event['summary'].split('-')[0].strip() # name
-                )
-        return result
+        events = filter(lambda e: "Atmosphere Support" in e['summary'], self.get_event_list())[:7]
+        return '\n'.join(["The support person for `{}` is {}\n".format(
+            dt.strptime(event['start'].get('date'), "%Y-%m-%d").strftime("%A %Y-%m-%d"),
+            event['summary'].split('-')[0].strip()) for event in events])
 
 
     def fancy_who(self, info):
