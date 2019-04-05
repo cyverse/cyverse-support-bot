@@ -18,9 +18,11 @@ except ImportError:
 class AtmoSupportBot:
     how_to_support = "http://cerberus.iplantcollaborative.org/rt/ or https://app.intercom.io/a/apps/tpwq3d9w/respond"
 
-    where_am_i = "This bot is hosted on %s in the directory `%s`.\n" \
-               "You can find my code here: github.com/calvinmclean/cyverse-support-bot" \
-               % (socket.getfqdn(), dirname(realpath(__file__)))
+    where_am_i = "This bot is hosted on {} in the directory `{}`.\n" \
+               "You can find my code here: github.com/calvinmclean/cyverse-support-bot".format(
+                    socket.getfqdn(),
+                    dirname(realpath(__file__))
+                )
 
     help_msg = """Ask me:
         `who` is today's support person.
@@ -93,7 +95,7 @@ class AtmoSupportBot:
             response = self.where_am_i
         else:
             response = self.chatbot.get_response(command).text
-        logging.info("Sending response to Slack: %s" % response)
+        logging.info("Sending response to Slack: {}".format(response))
         if thread_ts:
             self.slack_client.api_call(
                 "chat.postMessage", channel=channel, text=response, as_user=True, thread_ts=thread_ts)
@@ -175,8 +177,7 @@ class AtmoSupportBot:
                         user = filter(lambda u: (u['real_name'] == name or u['profile']['display_name'] == name) if 'real_name' in u.keys() else False, self.user_list)[0]['id']
                     except:
                         user = name
-                    return "Today's support person is %s." % (
-                        "<@" + user + ">")
+                    return "Today's support person is {}.".format("<@" + user + ">")
         return "<!here> no one is on support today."
 
 
@@ -187,7 +188,7 @@ class AtmoSupportBot:
             Returns:
                 Day string ("Monday", etc.)
         """
-        logging.info("Getting day from calendar for user %s" % name)
+        logging.info("Getting day from calendar for user {}".format(name))
         days = filter(lambda e: name.lower() in e['summary'].lower() and "Atmosphere Support" in e['summary'], self.get_event_list())
         return dt.strptime(days[0]['start'].get('date'), "%Y-%m-%d").strftime("%A %Y-%m-%d") if days else "not on the calendar"
 
@@ -207,7 +208,7 @@ class AtmoSupportBot:
 
 
     def fancy_who(self, info):
-        logging.info("Handling fancy who request: %s." % info)
+        logging.info("Handling fancy who request: {}.".format(info))
 
         # Remove non-alphanumeric characters
         info = re.sub(r'\W+', '', info)
@@ -245,14 +246,13 @@ class AtmoSupportBot:
             Returns:
                 Username.
         """
-        logging.info("Getting username for Slack name/id %s" % name_or_id)
+        logging.info("Getting username for Slack name/id {}".format(name_or_id))
         for user in self.user_list:
             if 'name' in user and user.get('name') == name_or_id:
                 return user.get('id')
             if 'id' in user and user.get('id') == name_or_id:
                 return user.get('name')
         return None
-
 
     def get_credentials(self):
         """
@@ -292,7 +292,7 @@ class AtmoSupportBot:
 
 def main():
     logging.basicConfig(
-        filename="%s/cyverse-support-bot.log" % dirname(realpath(__file__)),
+        filename="{}/cyverse-support-bot.log".format(dirname(realpath(__file__))),
         filemode='a',
         format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
         datefmt='%H:%M:%S',
